@@ -4,10 +4,10 @@ import { ArrowLeft, Calendar, User, Users, Briefcase, AlertCircle, CheckSquare, 
 import axios from 'axios';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
 import DocumentSelectorDrawer from '../../components/DocumentSelectorDrawer';
-import EditTaskModal from '../../components/modals/EditTaskModal';
-import DeleteTaskModal from '../../components/modals/DeleteTaskModal';
-import RemoveDocumentModal from '../../components/modals/RemoveDocumentModal';
-import AttachCaseModal from '../../components/modals/AttachCaseModal';
+import EditTaskModal from '../../components/Modals/EditTaskModal';
+import DeleteTaskModal from '../../components/Modals/DeleteTaskModal';
+import RemoveDocumentModal from '../../components/Modals/RemoveDocumentModal';
+import AttachCaseModal from '../../components/Modals/AttachCaseModal';
 import API_BASE_URL from '../../config/api';
 
 const TaskDetails = () => {
