@@ -14,7 +14,6 @@ async function notifyAdmins(type, message, relatedEntity) {
         const admins = await User.find({ role: 'Admin' });
 
         if (admins.length === 0) {
-            console.log('No admin users found to notify');
             return;
         }
 
@@ -26,8 +25,7 @@ async function notifyAdmins(type, message, relatedEntity) {
         }));
 
         await Notification.insertMany(notifications);
-        console.log(`Notified ${admins.length} admin(s): ${message}`);
-    } catch (error) {
+        } catch (error) {
         console.error('Error notifying admins:', error);
         // Don't throw error to prevent disrupting the main operation
     }
@@ -44,7 +42,6 @@ async function notifySuperAdmins(type, message, relatedEntity) {
         const superAdmins = await User.find({ role: 'Superadmin' });
 
         if (superAdmins.length === 0) {
-            console.log('No superadmin users found to notify');
             return;
         }
 
@@ -56,8 +53,7 @@ async function notifySuperAdmins(type, message, relatedEntity) {
         }));
 
         await Notification.insertMany(notifications);
-        console.log(`Notified ${superAdmins.length} superadmin(s): ${message}`);
-    } catch (error) {
+        } catch (error) {
         console.error('Error notifying superadmins:', error);
     }
 }
@@ -79,7 +75,6 @@ async function notifyCaseStakeholders(caseId, type, message, excludeUserId = nul
             .populate('assignedLawyers');
 
         if (!caseItem) {
-            console.log('Case not found for notification');
             return;
         }
 
@@ -120,10 +115,8 @@ async function notifyCaseStakeholders(caseId, type, message, excludeUserId = nul
             }));
 
             await Notification.insertMany(notifications);
-            console.log(`Notified ${recipients.size} stakeholder(s) for case ${caseId}: ${message}`);
-        } else {
-            console.log('No stakeholders to notify for this case');
-        }
+            } else {
+            }
     } catch (error) {
         console.error('Error notifying case stakeholders:', error);
         // Don't throw error to prevent disrupting the main operation

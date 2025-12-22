@@ -412,7 +412,6 @@ router.put('/:id', auth, async (req, res) => {
                 const rawCase = await Case.collection.findOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
                 // Check if courtInfo exists and is NOT an array (i.e., it's the legacy object)
                 if (rawCase && rawCase.courtInfo && !Array.isArray(rawCase.courtInfo)) {
-                    console.log(`Migrating courtInfo for case ${req.params.id} from Object to Array`);
                     const legacyInfo = rawCase.courtInfo;
                     if (!legacyInfo.dateAdded) {
                         legacyInfo.dateAdded = rawCase.updatedAt || new Date();
@@ -1168,7 +1167,6 @@ router.post('/shared/:token/report/:reportId/reply', async (req, res) => {
 
         // Notify HOC about client's reply
         try {
-            console.log('Attempting to notify HOC. assignedTo:', caseItem.assignedTo);
             if (caseItem.assignedTo) {
                 await new Notification({
                     recipient: caseItem.assignedTo,
@@ -1179,10 +1177,8 @@ router.post('/shared/:token/report/:reportId/reply', async (req, res) => {
                         entityId: caseItem._id
                     }
                 }).save();
-                console.log('✅ HOC notification sent successfully');
-            } else {
-                console.log('⚠️ No assignedTo found for case');
-            }
+                } else {
+                }
         } catch (notifErr) {
             console.error('❌ Error notifying HOC about client reply:', notifErr.message);
             console.error('Full error:', notifErr);
@@ -1190,7 +1186,6 @@ router.post('/shared/:token/report/:reportId/reply', async (req, res) => {
 
         // Notify client (confirmation) that their reply was sent
         try {
-            console.log('Attempting to notify client. client:', caseItem.client);
             if (caseItem.client && caseItem.client._id) {
                 await new Notification({
                     recipient: caseItem.client._id,
@@ -1201,10 +1196,8 @@ router.post('/shared/:token/report/:reportId/reply', async (req, res) => {
                         entityId: caseItem._id
                     }
                 }).save();
-                console.log('✅ Client confirmation notification sent successfully');
-            } else {
-                console.log('⚠️ Client or client._id not found');
-            }
+                } else {
+                }
         } catch (notifErr) {
             console.error('❌ Error notifying client about reply confirmation:', notifErr.message);
             console.error('Full error:', notifErr);

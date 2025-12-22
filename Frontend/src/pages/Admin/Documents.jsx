@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
+import API_BASE_URL from '../../../config/api';
 
 const Documents = () => {
     const location = useLocation();
@@ -64,7 +65,7 @@ const Documents = () => {
                 setLoading(false);
                 return;
             }
-            const res = await axios.get('http://localhost:5000/api/documents', {
+            const res = await axios.get(`${API_BASE_URL}/api/documents', {
                 headers: { 'x-auth-token': token }
             });
             setDocuments(res.data);
@@ -78,7 +79,7 @@ const Documents = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/users', {
+            const res = await axios.get(`${API_BASE_URL}/api/users', {
                 headers: { 'x-auth-token': token }
             });
             setUsers(res.data);
@@ -90,7 +91,7 @@ const Documents = () => {
     const fetchCases = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/cases', {
+            const res = await axios.get(`${API_BASE_URL}/api/cases', {
                 headers: { 'x-auth-token': token }
             });
             setCases(res.data);
@@ -156,7 +157,7 @@ const Documents = () => {
             formData.append('file', file);
 
             try {
-                await axios.post('http://localhost:5000/api/documents/upload', formData, {
+                await axios.post(`${API_BASE_URL}/api/documents/upload', formData, {
                     headers: {
                         'x-auth-token': token,
                         'Content-Type': 'multipart/form-data'
@@ -191,7 +192,7 @@ const Documents = () => {
         if (confirmAction === 'delete') {
             try {
                 const token = localStorage.getItem('token');
-                await axios.delete(`http://localhost:5000/api/documents/${confirmData.id}`, {
+                await axios.delete(`${API_BASE_URL}/api/documents/${confirmData.id}`, {
                     headers: { 'x-auth-token': token }
                 });
                 setDocuments(documents.filter(doc => doc._id !== confirmData.id));
@@ -205,7 +206,7 @@ const Documents = () => {
         } else if (confirmAction === 'unshare') {
             try {
                 const token = localStorage.getItem('token');
-                await axios.put(`http://localhost:5000/api/documents/${confirmData.docId}/unshare`,
+                await axios.put(`${API_BASE_URL}/api/documents/${confirmData.docId}/unshare`,
                     { userId: confirmData.userId },
                     { headers: { 'x-auth-token': token } }
                 );
@@ -237,7 +238,7 @@ const Documents = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/documents/${selectedDoc._id}/share`,
+            await axios.put(`${API_BASE_URL}/api/documents/${selectedDoc._id}/share`,
                 { userIds: selectedUserIds },
                 { headers: { 'x-auth-token': token } }
             );
@@ -284,7 +285,7 @@ const Documents = () => {
             const token = localStorage.getItem('token');
             for (const caseId of selectedCaseIds) {
                 await axios.put(
-                    `http://localhost:5000/api/documents/${selectedDoc._id}/link-to-case`,
+                    `${API_BASE_URL}/api/documents/${selectedDoc._id}/link-to-case`,
                     { caseId },
                     { headers: { 'x-auth-token': token } }
                 );

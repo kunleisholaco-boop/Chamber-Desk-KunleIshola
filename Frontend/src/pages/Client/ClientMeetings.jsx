@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, Plus, ChevronLeft, ChevronRight, X, MapPin, Video, Search, Pencil, AlertCircle, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
+import API_BASE_URL from '../../../config/api';
 
 const ClientMeetings = () => {
     const { shareToken, clientData } = useOutletContext();
@@ -54,7 +55,7 @@ const ClientMeetings = () => {
 
     const fetchMeetings = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/meetings`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/meetings`);
             if (response.ok) {
                 const data = await response.json();
                 setMeetings(data);
@@ -68,10 +69,9 @@ const ClientMeetings = () => {
 
     const fetchAttendees = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/attendees`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/attendees`);
             if (response.ok) {
                 const data = await response.json();
-                console.log('Fetched attendees:', data);
                 setAttendeesList(data);
             }
         } catch (err) {
@@ -147,7 +147,7 @@ const ClientMeetings = () => {
             // Use provided data or fall back to state if needed (but prefer passing data)
             const dataToUse = meetingData || formData;
 
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/meetings/generate-zoho-link`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/meetings/generate-zoho-link`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -216,7 +216,7 @@ const ClientMeetings = () => {
         if (!meetingToCancel) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/meetings/${meetingToCancel._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/meetings/${meetingToCancel._id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -261,8 +261,8 @@ const ClientMeetings = () => {
             }
 
             const url = isEditing
-                ? `http://localhost:5000/api/client-portal/${shareToken}/meetings/${editingId}`
-                : `http://localhost:5000/api/client-portal/${shareToken}/meetings`;
+                ? `${API_BASE_URL}/api/client-portal/${shareToken}/meetings/${editingId}`
+                : `${API_BASE_URL}/api/client-portal/${shareToken}/meetings`;
 
             const method = isEditing ? 'PUT' : 'POST';
 
@@ -334,7 +334,7 @@ const ClientMeetings = () => {
 
     const handleRSVP = async (meetingId, status) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/meetings/${meetingId}/rsvp`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/meetings/${meetingId}/rsvp`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

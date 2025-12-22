@@ -38,8 +38,7 @@ router.get('/', auth, async (req, res) => {
             ];
 
             await Broadcast.insertMany(seedData);
-            console.log('Seeded dummy broadcasts');
-        }
+            }
 
         const broadcasts = await Broadcast.find()
             .populate('sender', 'name email')

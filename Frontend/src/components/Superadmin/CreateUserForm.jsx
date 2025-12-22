@@ -23,7 +23,7 @@ const CreateUserForm = ({ onSuccess, onCancel }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/auth/create-user', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/create-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell, CheckCircle, XCircle, Briefcase, AlertCircle, Calendar, ArrowRight, MessageSquare, Trash2, UserPlus, UserCheck, DollarSign, Users, CheckSquare } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import API_BASE_URL from '../../../config/api';
 
 const ClientNotifications = () => {
     const navigate = useNavigate();
@@ -26,7 +27,7 @@ const ClientNotifications = () => {
         if (!shareToken) return;
         setIsLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/client-portal/${shareToken}/notifications?date=${selectedDate}`);
+            const res = await axios.get(`${API_BASE_URL}/api/client-portal/${shareToken}/notifications?date=${selectedDate}`);
             setNotifications(res.data);
         } catch (err) {
             console.error('Error fetching notifications:', err);
@@ -37,7 +38,7 @@ const ClientNotifications = () => {
 
     const fetchDatesWithUnread = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/client-portal/${shareToken}/notifications/unread-dates`);
+            const res = await axios.get(`${API_BASE_URL}/api/client-portal/${shareToken}/notifications/unread-dates`);
             setDatesWithUnread(res.data.dates || []);
         } catch (err) {
             console.error('Error fetching unread dates:', err);
@@ -46,7 +47,7 @@ const ClientNotifications = () => {
 
     const markAsRead = async (notificationId) => {
         try {
-            await axios.put(`http://localhost:5000/api/client-portal/${shareToken}/notifications/${notificationId}/read`);
+            await axios.put(`${API_BASE_URL}/api/client-portal/${shareToken}/notifications/${notificationId}/read`);
             setNotifications(notifications.map(notif =>
                 notif._id === notificationId ? { ...notif, read: true } : notif
             ));
@@ -59,7 +60,7 @@ const ClientNotifications = () => {
 
     const markAllAsRead = async () => {
         try {
-            await axios.put(`http://localhost:5000/api/client-portal/${shareToken}/notifications/read-all`);
+            await axios.put(`${API_BASE_URL}/api/client-portal/${shareToken}/notifications/read-all`);
             setNotifications(notifications.map(notif => ({ ...notif, read: true })));
             // Refresh unread dates
             fetchDatesWithUnread();

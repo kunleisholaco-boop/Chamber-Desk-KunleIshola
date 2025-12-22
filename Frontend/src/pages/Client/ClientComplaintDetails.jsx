@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useOutletContext, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MessageCircle, AlertCircle } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const ClientComplaintDetails = () => {
     const { complaintId } = useParams();
@@ -18,7 +19,7 @@ const ClientComplaintDetails = () => {
 
     const fetchComplaintDetails = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/complaints/${complaintId}`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/complaints/${complaintId}`);
             if (response.ok) {
                 const data = await response.json();
                 setComplaint(data);
@@ -39,7 +40,7 @@ const ClientComplaintDetails = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/complaints/${complaintId}/reply`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/complaints/${complaintId}/reply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: replyContent })

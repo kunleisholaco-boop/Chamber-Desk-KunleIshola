@@ -17,7 +17,7 @@ const HOCSidebar = () => {
     const fetchUnreadCount = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/notifications', {
+            const res = await axios.get(`${API_BASE_URL}/api/notifications', {
                 headers: { 'x-auth-token': token }
             });
             const unread = res.data.filter(n => !n.read).length;

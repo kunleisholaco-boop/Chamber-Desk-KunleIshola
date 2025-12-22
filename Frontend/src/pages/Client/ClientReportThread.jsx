@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MessageCircle, User as UserIcon, FileText } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const ClientReportThread = () => {
     const { shareToken, caseId, reportId } = useParams();
@@ -18,7 +19,7 @@ const ClientReportThread = () => {
 
     const fetchReportData = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/case/${caseId}`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/case/${caseId}`);
             if (response.ok) {
                 const data = await response.json();
                 setCaseData(data);
@@ -46,7 +47,7 @@ const ClientReportThread = () => {
                 return;
             }
 
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/case/${caseId}/report/${reportId}/reply`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/case/${caseId}/report/${reportId}/reply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin, content: replyContent })

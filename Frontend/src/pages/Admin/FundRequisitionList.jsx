@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, User, Calendar, CheckCircle, XCircle, Clock, Send, Plus, Search, Filter, Eye } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const FundRequisitionList = () => {
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ const FundRequisitionList = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/funds', {
+            const response = await fetch(`${API_BASE_URL}/api/funds', {
                 headers: { 'x-auth-token': token }
             });
 
@@ -53,17 +54,15 @@ const FundRequisitionList = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/auth/users', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/users', {
                 headers: { 'x-auth-token': token }
             });
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('All users fetched:', data);
                 const filteredUsers = data.filter(user =>
                     ['HOC', 'Lawyer', 'Admin Officer', 'Paralegal', 'Admin'].includes(user.role)
                 );
-                console.log('Filtered users for dropdown:', filteredUsers);
                 setUsers(filteredUsers);
             } else {
                 console.error('Failed to fetch users, status:', response.status);
@@ -76,15 +75,13 @@ const FundRequisitionList = () => {
     const fetchManagers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/auth/users', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/users', {
                 headers: { 'x-auth-token': token }
             });
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('All users for manager filter:', data);
                 const managerUsers = data.filter(user => user.role === 'Manager');
-                console.log('Filtered managers:', managerUsers);
                 setManagers(managerUsers);
             } else {
                 console.error('Failed to fetch managers, status:', response.status);
@@ -105,7 +102,7 @@ const FundRequisitionList = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/funds/${selectedRequisition._id}/assign`, {
+            const response = await fetch(`${API_BASE_URL}/api/funds/${selectedRequisition._id}/assign`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

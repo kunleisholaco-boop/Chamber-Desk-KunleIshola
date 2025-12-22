@@ -6,8 +6,6 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-console.log('\n--- Zoho Refresh Token Generator ---\n');
-
 const question = (query) => new Promise((resolve) => rl.question(query, resolve));
 
 const generateToken = async () => {
@@ -16,8 +14,6 @@ const generateToken = async () => {
         const clientSecret = await question('Enter Client Secret: ');
         const code = await question('Enter Authorization Code: ');
         const redirectUri = 'http://localhost:5173/oauth/callback'; // Must match exactly
-
-        console.log('\nGenerating token...');
 
         const params = new URLSearchParams();
         params.append('client_id', clientId.trim());
@@ -31,12 +27,7 @@ const generateToken = async () => {
         if (response.data.error) {
             console.error('\nError from Zoho:', response.data.error);
         } else {
-            console.log('\nSUCCESS! Here are your credentials:\n');
-            console.log('----------------------------------------');
-            console.log(`Refresh Token: ${response.data.refresh_token}`);
-            console.log('----------------------------------------');
-            console.log('\nPlease save this Refresh Token safely. You will need it for the backend configuration.');
-        }
+            }
 
     } catch (error) {
         console.error('\nRequest Failed:', error.response ? error.response.data : error.message);

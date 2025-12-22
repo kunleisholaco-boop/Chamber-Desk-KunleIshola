@@ -35,7 +35,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, onSuccess }) => {
         try {
             const token = localStorage.getItem('token');
             const currentUser = JSON.parse(localStorage.getItem('user'));
-            const response = await fetch('http://localhost:5000/api/users/selectable', {
+            const response = await fetch(`${API_BASE_URL}/api/users/selectable', {
                 headers: { 'x-auth-token': token }
             });
             if (response.ok) {
@@ -51,7 +51,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, onSuccess }) => {
     const fetchClients = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/clients', {
+            const response = await fetch(`${API_BASE_URL}/api/clients', {
                 headers: { 'x-auth-token': token }
             });
             if (response.ok) {
@@ -66,7 +66,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, onSuccess }) => {
     const generateZohoLink = async (meetingData) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/meetings/generate-zoho-link', {
+            const response = await fetch(`${API_BASE_URL}/api/meetings/generate-zoho-link', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, onSuccess }) => {
             }
 
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/meetings', {
+            const response = await fetch(`${API_BASE_URL}/api/meetings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

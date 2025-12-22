@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Clock, User, FileText, AlertCircle } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const CaseReports = ({ caseId }) => {
     const [reports, setReports] = useState([]);
@@ -15,7 +16,7 @@ const CaseReports = ({ caseId }) => {
     const fetchReports = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${caseId}/reports`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${caseId}/reports`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -40,7 +41,7 @@ const CaseReports = ({ caseId }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${caseId}/reports`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${caseId}/reports`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

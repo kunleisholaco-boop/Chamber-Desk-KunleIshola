@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Building, Calendar, Briefcase, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import LoadingSpinner from './LoadingSpinner';
+import API_BASE_URL from '../../../config/api';
 
 const EditClientForm = () => {
     const navigate = useNavigate();
@@ -63,7 +64,7 @@ const EditClientForm = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/clients/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -214,7 +215,7 @@ const EditClientForm = () => {
                 };
             }
 
-            const response = await fetch(`http://localhost:5000/api/clients/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import ClientAuthSetup from '../../components/ClientPortal/ClientAuthSetup';
 import ClientAuthLogin from '../../components/ClientPortal/ClientAuthLogin';
 import ClientPortalSidebar from '../../components/ClientPortal/ClientPortalSidebar';
+import API_BASE_URL from '../../../config/api';
 
 const ClientPortalLayout = () => {
     const { shareToken } = useParams();
@@ -19,7 +20,7 @@ const ClientPortalLayout = () => {
 
     const checkAuthStatus = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/details`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/details`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -31,7 +32,7 @@ const ClientPortalLayout = () => {
                     const sessionPin = sessionStorage.getItem(`clientPin_${shareToken}`);
                     if (sessionPin) {
                         // Validate session PIN
-                        const verifyResponse = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/verify-pin`, {
+                        const verifyResponse = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/verify-pin`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ pin: sessionPin })
@@ -63,7 +64,7 @@ const ClientPortalLayout = () => {
 
     const handleSetupComplete = async (clientName, pin) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/setup-pin`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/setup-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ clientName, pin })
@@ -82,7 +83,7 @@ const ClientPortalLayout = () => {
 
     const handleLoginSuccess = async (pin) => {
         try {
-            const verifyResponse = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/verify-pin`, {
+            const verifyResponse = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/verify-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin })

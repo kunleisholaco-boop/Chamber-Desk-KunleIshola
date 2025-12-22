@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MessageCircle, AlertCircle, User as UserIcon } from 'lucide-react';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
+import API_BASE_URL from '../../../config/api';
 
 const ComplaintDetails = () => {
     const { id } = useParams();
@@ -20,7 +21,7 @@ const ComplaintDetails = () => {
     const fetchComplaintDetails = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/complaints/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/complaints/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -46,7 +47,7 @@ const ComplaintDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/complaints/${id}/reply`, {
+            const response = await fetch(`${API_BASE_URL}/api/complaints/${id}/reply`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ const ComplaintDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/complaints/${id}/status`, {
+            const response = await fetch(`${API_BASE_URL}/api/complaints/${id}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

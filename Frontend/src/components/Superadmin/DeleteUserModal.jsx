@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const DeleteUserModal = ({ user, onSuccess, onCancel }) => {
     const [confirmationText, setConfirmationText] = useState('');
@@ -19,7 +20,7 @@ const DeleteUserModal = ({ user, onSuccess, onCancel }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/auth/users/${user._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/users/${user._id}`, {
                 method: 'DELETE',
                 headers: {
                     'x-auth-token': token

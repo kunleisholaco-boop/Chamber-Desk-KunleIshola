@@ -8,6 +8,7 @@ import ClientPartiesSection from '../../components/ClientPortal/ClientPartiesSec
 import ClientWitnessesSection from '../../components/ClientPortal/ClientWitnessesSection';
 import ClientCourtInfo from '../../components/ClientPortal/ClientCourtInfo';
 import ClientReportsTimeline from '../../components/ClientPortal/ClientReportsTimeline';
+import API_BASE_URL from '../../../config/api';
 
 const ClientPortalCaseView = () => {
     const { shareToken, caseId } = useParams();
@@ -23,7 +24,7 @@ const ClientPortalCaseView = () => {
     const fetchCaseDetails = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/case/${caseId}`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/case/${caseId}`);
 
             if (response.ok) {
                 const data = await response.json();

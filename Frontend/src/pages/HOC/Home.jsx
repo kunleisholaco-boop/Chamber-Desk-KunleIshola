@@ -34,7 +34,7 @@ const Home = () => {
             const userId = user.id;
 
             // Clients
-            const clientsRes = await fetch('http://localhost:5000/api/clients', {
+            const clientsRes = await fetch(`${API_BASE_URL}/api/clients', {
                 headers: { 'x-auth-token': token }
             });
             if (clientsRes.ok) {
@@ -44,7 +44,7 @@ const Home = () => {
             }
 
             // Cases - Only fetch cases assigned to this HOC
-            const casesRes = await fetch('http://localhost:5000/api/cases', {
+            const casesRes = await fetch(`${API_BASE_URL}/api/cases', {
                 headers: { 'x-auth-token': token }
             });
             if (casesRes.ok) {
@@ -60,7 +60,7 @@ const Home = () => {
             }
 
             // Fund Requisitions
-            const fundsRes = await fetch('http://localhost:5000/api/funds', {
+            const fundsRes = await fetch(`${API_BASE_URL}/api/funds', {
                 headers: { 'x-auth-token': token }
             });
             if (fundsRes.ok) {
@@ -70,7 +70,7 @@ const Home = () => {
             }
 
             // Documents - Filter by uploadedBy or sharedWith
-            const docsRes = await fetch('http://localhost:5000/api/documents', {
+            const docsRes = await fetch(`${API_BASE_URL}/api/documents', {
                 headers: { 'x-auth-token': token }
             });
             if (docsRes.ok) {
@@ -83,7 +83,7 @@ const Home = () => {
             }
 
             // Support Tickets
-            const ticketsRes = await fetch('http://localhost:5000/api/support', {
+            const ticketsRes = await fetch(`${API_BASE_URL}/api/support', {
                 headers: { 'x-auth-token': token }
             });
             if (ticketsRes.ok) {
@@ -97,7 +97,7 @@ const Home = () => {
             }
 
             // Notifications
-            const notifRes = await fetch('http://localhost:5000/api/notifications', {
+            const notifRes = await fetch(`${API_BASE_URL}/api/notifications', {
                 headers: { 'x-auth-token': token }
             });
             if (notifRes.ok) {

@@ -10,6 +10,7 @@ import ClientPartiesSection from '../../components/ClientPortal/ClientPartiesSec
 import ClientWitnessesSection from '../../components/ClientPortal/ClientWitnessesSection';
 import ClientCourtInfo from '../../components/ClientPortal/ClientCourtInfo';
 import ClientReportsTimeline from '../../components/ClientPortal/ClientReportsTimeline';
+import API_BASE_URL from '../../../config/api';
 
 const ClientCaseView = () => {
     const { shareToken } = useParams();
@@ -24,7 +25,7 @@ const ClientCaseView = () => {
 
     const checkAuthStatus = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/cases/shared/${shareToken}/details`);
+            const response = await fetch(`${API_BASE_URL}/api/cases/shared/${shareToken}/details`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -48,7 +49,7 @@ const ClientCaseView = () => {
 
     const handleSetupComplete = async (clientName, pin) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/cases/shared/${shareToken}/setup-pin`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/shared/${shareToken}/setup-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ clientName, pin })
@@ -69,7 +70,7 @@ const ClientCaseView = () => {
     const handleLoginSuccess = async (pin) => {
         try {
             // Verify PIN
-            const verifyResponse = await fetch(`http://localhost:5000/api/cases/shared/${shareToken}/verify-pin`, {
+            const verifyResponse = await fetch(`${API_BASE_URL}/api/cases/shared/${shareToken}/verify-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin })
@@ -83,7 +84,7 @@ const ClientCaseView = () => {
             sessionStorage.setItem(`clientPin_${shareToken}`, pin);
 
             // Fetch case data
-            const caseResponse = await fetch(`http://localhost:5000/api/cases/shared/${shareToken}/details`);
+            const caseResponse = await fetch(`${API_BASE_URL}/api/cases/shared/${shareToken}/details`);
 
             if (caseResponse.ok) {
                 const data = await caseResponse.json();

@@ -18,7 +18,7 @@ const CasesPage = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/cases', {
+            const response = await fetch(`${API_BASE_URL}/api/cases', {
                 headers: {
                     'x-auth-token': token
                 }

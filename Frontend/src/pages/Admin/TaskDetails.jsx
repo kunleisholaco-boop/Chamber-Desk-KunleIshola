@@ -8,6 +8,7 @@ import EditTaskModal from '../../components/modals/EditTaskModal';
 import DeleteTaskModal from '../../components/modals/DeleteTaskModal';
 import RemoveDocumentModal from '../../components/modals/RemoveDocumentModal';
 import AttachCaseModal from '../../components/modals/AttachCaseModal';
+import API_BASE_URL from '../../../config/api';
 
 const TaskDetails = () => {
     const { id } = useParams();
@@ -48,7 +49,7 @@ const TaskDetails = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
                 headers: { 'x-auth-token': token }
             });
             if (response.ok) {
@@ -70,8 +71,8 @@ const TaskDetails = () => {
         try {
             const token = localStorage.getItem('token');
             const [casesRes, usersRes] = await Promise.all([
-                fetch('http://localhost:5000/api/cases', { headers: { 'x-auth-token': token } }),
-                fetch('http://localhost:5000/api/users/selectable', { headers: { 'x-auth-token': token } })
+                fetch(`${API_BASE_URL}/api/cases', { headers: { 'x-auth-token': token } }),
+                fetch(`${API_BASE_URL}/api/users/selectable', { headers: { 'x-auth-token': token } })
             ]);
 
             if (casesRes.ok) {
@@ -96,7 +97,7 @@ const TaskDetails = () => {
         setIsUpdatingStatus(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -124,7 +125,7 @@ const TaskDetails = () => {
         setIsAddingSubtask(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}/subtasks`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}/subtasks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +149,7 @@ const TaskDetails = () => {
     const handleToggleSubtask = async (subtaskId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}/subtasks/${subtaskId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}/subtasks/${subtaskId}`, {
                 method: 'PATCH',
                 headers: { 'x-auth-token': token }
             });
@@ -172,7 +173,7 @@ const TaskDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}/subtasks/${subtaskToDelete}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}/subtasks/${subtaskToDelete}`, {
                 method: 'DELETE',
                 headers: { 'x-auth-token': token }
             });
@@ -199,7 +200,7 @@ const TaskDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}/subtasks/${editingSubtaskId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}/subtasks/${editingSubtaskId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -266,7 +267,7 @@ const TaskDetails = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -290,7 +291,7 @@ const TaskDetails = () => {
     const handleDeleteConfirm = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
                 method: 'DELETE',
                 headers: { 'x-auth-token': token }
             });
@@ -308,7 +309,7 @@ const TaskDetails = () => {
         setLoadingDocuments(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/documents/case/${caseId}`, {
+            const res = await axios.get(`${API_BASE_URL}/api/documents/case/${caseId}`, {
                 headers: { 'x-auth-token': token }
             });
             setCaseDocuments(res.data);
@@ -324,7 +325,7 @@ const TaskDetails = () => {
         try {
             const token = localStorage.getItem('token');
             for (const doc of selectedDocs) {
-                await axios.put(`http://localhost:5000/api/documents/${doc._id}/link-to-case`,
+                await axios.put(`${API_BASE_URL}/api/documents/${doc._id}/link-to-case`,
                     { caseId: task.case._id },
                     { headers: { 'x-auth-token': token } }
                 );
@@ -345,7 +346,7 @@ const TaskDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/documents/${documentToRemove._id}/unlink-from-case`, {}, {
+            await axios.put(`${API_BASE_URL}/api/documents/${documentToRemove._id}/unlink-from-case`, {}, {
                 headers: { 'x-auth-token': token }
             });
             fetchCaseDocuments(task.case._id);
@@ -458,7 +459,7 @@ const TaskDetails = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                `http://localhost:5000/api/tasks/${id}/comments`,
+                `${API_BASE_URL}/api/tasks/${id}/comments`,
                 { text: newComment },
                 { headers: { 'x-auth-token': token } }
             );
@@ -478,7 +479,7 @@ const TaskDetails = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                `http://localhost:5000/api/tasks/${id}/comments/${commentId}/replies`,
+                `${API_BASE_URL}/api/tasks/${id}/comments/${commentId}/replies`,
                 { text: replyText },
                 { headers: { 'x-auth-token': token } }
             );
@@ -498,7 +499,7 @@ const TaskDetails = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.delete(
-                `http://localhost:5000/api/tasks/${id}/comments/${commentId}`,
+                `${API_BASE_URL}/api/tasks/${id}/comments/${commentId}`,
                 { headers: { 'x-auth-token': token } }
             );
 
@@ -515,7 +516,7 @@ const TaskDetails = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.delete(
-                `http://localhost:5000/api/tasks/${id}/comments/${commentId}/replies/${replyId}`,
+                `${API_BASE_URL}/api/tasks/${id}/comments/${commentId}/replies/${replyId}`,
                 { headers: { 'x-auth-token': token } }
             );
 

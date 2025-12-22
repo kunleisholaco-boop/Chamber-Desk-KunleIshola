@@ -64,7 +64,6 @@ router.get('/users', auth, async (req, res) => {
         // Check if user making request has an allowed role
         const allowedRoles = ['Superadmin', 'Admin Officer', 'Admin'];
         if (!allowedRoles.includes(req.user.role)) {
-            console.log('Access denied for role:', req.user.role);
             return res.status(403).json({ msg: 'Access denied. Insufficient role.' });
         }
 

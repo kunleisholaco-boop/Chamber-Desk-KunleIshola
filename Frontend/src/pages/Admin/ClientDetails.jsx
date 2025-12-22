@@ -6,6 +6,7 @@ import {
     Briefcase, Users, FileText, AlertCircle, MessageSquare
 } from 'lucide-react';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
+import API_BASE_URL from '../../../config/api';
 
 const ClientDetails = () => {
     const { id } = useParams();
@@ -27,7 +28,7 @@ const ClientDetails = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/clients/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -47,7 +48,7 @@ const ClientDetails = () => {
     const fetchClientCases = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/client/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/client/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -65,7 +66,7 @@ const ClientDetails = () => {
     const fetchClientComplaints = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/complaints/client/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/complaints/client/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -88,7 +89,7 @@ const ClientDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/clients/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${id}`, {
                 method: 'DELETE',
                 headers: { 'x-auth-token': token }
             });
@@ -242,7 +243,7 @@ const ClientDetails = () => {
                                         if (confirm('Reset client PIN? Client will need to set up a new PIN.')) {
                                             try {
                                                 const token = localStorage.getItem('token');
-                                                const response = await fetch(`http://localhost:5000/api/clients/${id}/reset-pin`, {
+                                                const response = await fetch(`${API_BASE_URL}/api/clients/${id}/reset-pin`, {
                                                     method: 'POST',
                                                     headers: { 'x-auth-token': token }
                                                 });
@@ -269,7 +270,7 @@ const ClientDetails = () => {
                             onClick={async () => {
                                 try {
                                     const token = localStorage.getItem('token');
-                                    const response = await fetch(`http://localhost:5000/api/clients/${id}/generate-portal-link`, {
+                                    const response = await fetch(`${API_BASE_URL}/api/clients/${id}/generate-portal-link`, {
                                         method: 'POST',
                                         headers: { 'x-auth-token': token }
                                     });

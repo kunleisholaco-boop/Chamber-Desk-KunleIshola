@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Briefcase, Calendar, Lock, Scale, MessageSquare, Bell } from 'lucide-react';
 import axios from 'axios';
+import API_BASE_URL from '../../../config/api';
 
 const ClientPortalSidebar = ({ shareToken, onLogout }) => {
     const location = useLocation();
@@ -17,7 +18,7 @@ const ClientPortalSidebar = ({ shareToken, onLogout }) => {
 
     const fetchUnreadCount = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/client-portal/${shareToken}/notifications/unread-count`);
+            const res = await axios.get(`${API_BASE_URL}/api/client-portal/${shareToken}/notifications/unread-count`);
             setUnreadCount(res.data.count || 0);
         } catch (err) {
             console.error('Error fetching unread count:', err);

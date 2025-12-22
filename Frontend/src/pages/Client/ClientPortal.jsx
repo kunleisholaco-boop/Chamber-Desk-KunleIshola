@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AlertCircle, Briefcase, Calendar, FileText } from 'lucide-react';
 import ClientAuthSetup from '../../components/ClientPortal/ClientAuthSetup';
 import ClientAuthLogin from '../../components/ClientPortal/ClientAuthLogin';
+import API_BASE_URL from '../../../config/api';
 
 const ClientPortal = () => {
     const { shareToken } = useParams();
@@ -19,7 +20,7 @@ const ClientPortal = () => {
 
     const checkAuthStatus = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/details`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/details`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -43,7 +44,7 @@ const ClientPortal = () => {
 
     const handleSetupComplete = async (clientName, pin) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/setup-pin`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/setup-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ clientName, pin })
@@ -64,7 +65,7 @@ const ClientPortal = () => {
     const handleLoginSuccess = async (pin) => {
         try {
             // Verify PIN
-            const verifyResponse = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/verify-pin`, {
+            const verifyResponse = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/verify-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin })
@@ -80,7 +81,7 @@ const ClientPortal = () => {
             sessionStorage.setItem(`clientPin_${shareToken}`, pin);
 
             // Fetch client cases
-            const casesResponse = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/cases`);
+            const casesResponse = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/cases`);
 
             if (casesResponse.ok) {
                 const casesData = await casesResponse.json();

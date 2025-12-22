@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, Plus, X } from 'lucide-react';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
+import API_BASE_URL from '../../../config/api';
 
 const EditCaseForm = () => {
     const { id } = useParams();
@@ -55,7 +56,7 @@ const EditCaseForm = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -181,7 +182,7 @@ const EditCaseForm = () => {
                 } : null
             };
 
-            const response = await fetch(`http://localhost:5000/api/cases/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

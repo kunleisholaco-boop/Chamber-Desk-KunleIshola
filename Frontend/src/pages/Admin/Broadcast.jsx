@@ -15,7 +15,7 @@ const Broadcast = () => {
     const fetchBroadcasts = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/broadcasts', {
+            const response = await fetch(`${API_BASE_URL}/api/broadcasts', {
                 headers: { 'x-auth-token': token }
             });
             if (response.ok) {

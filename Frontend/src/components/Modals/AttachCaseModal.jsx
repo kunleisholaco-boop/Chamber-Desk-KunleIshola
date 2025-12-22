@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Briefcase } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const AttachCaseModal = ({ isOpen, onClose, onAttach, taskId }) => {
     const [cases, setCases] = useState([]);
@@ -17,7 +18,7 @@ const AttachCaseModal = ({ isOpen, onClose, onAttach, taskId }) => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/cases', {
+            const response = await fetch(`${API_BASE_URL}/api/cases', {
                 headers: { 'x-auth-token': token }
             });
             if (response.ok) {
@@ -38,7 +39,7 @@ const AttachCaseModal = ({ isOpen, onClose, onAttach, taskId }) => {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

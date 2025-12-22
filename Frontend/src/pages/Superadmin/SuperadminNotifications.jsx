@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Check, Trash2, Filter } from 'lucide-react';
 import axios from 'axios';
+import API_BASE_URL from '../../../config/api';
 
 const SuperadminNotifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -14,7 +15,7 @@ const SuperadminNotifications = () => {
     const fetchNotifications = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/notifications', {
+            const res = await axios.get(`${API_BASE_URL}/api/notifications', {
                 headers: { 'x-auth-token': token }
             });
             setNotifications(res.data);
@@ -28,7 +29,7 @@ const SuperadminNotifications = () => {
     const handleMarkAsRead = async (notificationId) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/notifications/${notificationId}/read`, {}, {
+            await axios.put(`${API_BASE_URL}/api/notifications/${notificationId}/read`, {}, {
                 headers: { 'x-auth-token': token }
             });
             setNotifications(notifications.map(n =>
@@ -42,7 +43,7 @@ const SuperadminNotifications = () => {
     const handleMarkAllAsRead = async () => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put('http://localhost:5000/api/notifications/read-all', {}, {
+            await axios.put(`${API_BASE_URL}/api/notifications/read-all', {}, {
                 headers: { 'x-auth-token': token }
             });
             setNotifications(notifications.map(n => ({ ...n, read: true })));
@@ -58,7 +59,7 @@ const SuperadminNotifications = () => {
             const token = localStorage.getItem('token');
             // Delete all notifications one by one (you may want to add a bulk delete endpoint)
             for (const notification of notifications) {
-                await axios.delete(`http://localhost:5000/api/notifications/${notification._id}`, {
+                await axios.delete(`${API_BASE_URL}/api/notifications/${notification._id}`, {
                     headers: { 'x-auth-token': token }
                 });
             }

@@ -17,7 +17,7 @@ const AdminDashboard = () => {
     const fetchUnreadCount = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/notifications/unread-count', {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/unread-count', {
                 headers: { 'x-auth-token': token }
             });
             if (res.ok) {

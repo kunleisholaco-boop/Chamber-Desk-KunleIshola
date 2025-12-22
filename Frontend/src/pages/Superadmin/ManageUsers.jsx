@@ -39,7 +39,7 @@ const ManageUsers = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/auth/users', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/users', {
                 headers: {
                     'x-auth-token': token
                 }

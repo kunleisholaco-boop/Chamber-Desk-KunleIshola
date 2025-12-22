@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckSquare, Plus, Calendar, User, Briefcase, Clock, AlertCircle, X, Search } from 'lucide-react';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
 import AddTaskModal from '../../components/Modals/AddTaskModal';
+import API_BASE_URL from '../../../config/api';
 
 
 const Tasks = () => {
@@ -23,7 +24,7 @@ const Tasks = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks?type=${activeTab}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks?type=${activeTab}`, {
                 headers: { 'x-auth-token': token }
             });
             if (response.ok) {
@@ -82,7 +83,7 @@ const Tasks = () => {
         // Update on backend
         try {
             const token = localStorage.getItem('token');
-            await fetch(`http://localhost:5000/api/tasks/${draggedTask._id}`, {
+            await fetch(`${API_BASE_URL}/api/tasks/${draggedTask._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

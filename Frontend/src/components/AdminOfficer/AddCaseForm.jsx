@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle, Upload, Plus, X } from 'lucide-react';
 import Alert from '../Alert';
+import API_BASE_URL from '../../../config/api';
 
 const AddCaseForm = () => {
     const navigate = useNavigate();
@@ -62,7 +63,7 @@ const AddCaseForm = () => {
     const fetchClientName = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/clients/${clientId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${clientId}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -78,7 +79,7 @@ const AddCaseForm = () => {
     const fetchAllClients = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/clients', {
+            const response = await fetch(`${API_BASE_URL}/api/clients', {
                 headers: { 'x-auth-token': token }
             });
 
@@ -162,7 +163,7 @@ const AddCaseForm = () => {
                 ...formData
             };
 
-            const response = await fetch('http://localhost:5000/api/cases', {
+            const response = await fetch(`${API_BASE_URL}/api/cases', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -19,7 +19,7 @@ const ClientManagement = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/clients', {
+            const response = await fetch(`${API_BASE_URL}/api/clients', {
                 headers: {
                     'x-auth-token': token
                 }

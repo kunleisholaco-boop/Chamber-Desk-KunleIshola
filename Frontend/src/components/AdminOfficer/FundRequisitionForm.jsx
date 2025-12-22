@@ -34,7 +34,7 @@ const FundRequisitionForm = () => {
     const fetchCases = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/cases', {
+            const res = await fetch(`${API_BASE_URL}/api/cases', {
                 headers: { 'x-auth-token': token }
             });
             if (res.ok) {
@@ -62,7 +62,7 @@ const FundRequisitionForm = () => {
     const fetchClients = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/clients', {
+            const res = await fetch(`${API_BASE_URL}/api/clients', {
                 headers: { 'x-auth-token': token }
             });
             if (res.ok) {
@@ -90,7 +90,7 @@ const FundRequisitionForm = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/funds', {
+            const res = await fetch(`${API_BASE_URL}/api/funds', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -30,8 +30,6 @@ const getOrganizationId = async (accessToken) => {
             }
         });
 
-        console.log('User Details Response:', JSON.stringify(response.data, null, 2));
-
         if (response.data && response.data.userDetails) {
             const { zsoid, zuid } = response.data.userDetails;
             if (!zsoid) throw new Error('Could not retrieve ZSOID from Zoho');
@@ -47,12 +45,8 @@ const getOrganizationId = async (accessToken) => {
 
 const createMeeting = async (meetingDetails) => {
     try {
-        console.log('Step 1: Getting Access Token...');
         const accessToken = await getAccessToken();
-        console.log('Step 2: Getting Organization ID and User ID...');
         const { zsoid, zuid } = await getOrganizationId(accessToken);
-        console.log(`Step 3: Creating Meeting for Org: ${zsoid}, Presenter: ${zuid}`);
-
         // Format date for Zoho: "MMM dd, yyyy hh:mm aa"
         const dateObj = new Date(`${meetingDetails.date}T${meetingDetails.time}`);
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -78,8 +72,6 @@ const createMeeting = async (meetingDetails) => {
             }
         };
 
-        console.log('Payload:', JSON.stringify(payload, null, 2));
-
         const response = await axios.post(`https://meeting.zoho.com/api/v2/${zsoid}/sessions.json`, payload, {
             headers: {
                 'Authorization': `Zoho-oauthtoken ${accessToken}`,
@@ -88,7 +80,6 @@ const createMeeting = async (meetingDetails) => {
         });
 
         if (response.data && response.data.session) {
-            console.log('Meeting Created Successfully:', response.data.session.joinLink);
             return response.data.session.joinLink;
         } else {
             console.error('Unexpected Zoho response:', response.data);

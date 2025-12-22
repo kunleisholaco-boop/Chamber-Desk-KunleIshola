@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, User, Users, Briefcase, AlertCircle, CheckSquare, Plus, Trash2, Edit, Check } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const TaskDetailsModal = ({ task, onClose, onUpdate, onDelete, currentUserId }) => {
     const [newSubtask, setNewSubtask] = useState('');
@@ -29,7 +30,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate, onDelete, currentUserId }) 
         setIsAddingSubtask(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${task._id}/subtasks`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${task._id}/subtasks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,7 +54,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate, onDelete, currentUserId }) 
     const handleToggleSubtask = async (subtaskId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${task._id}/subtasks/${subtaskId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${task._id}/subtasks/${subtaskId}`, {
                 method: 'PATCH',
                 headers: { 'x-auth-token': token }
             });
@@ -71,7 +72,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate, onDelete, currentUserId }) 
         setIsUpdatingStatus(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${task._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${task._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +108,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate, onDelete, currentUserId }) 
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${task._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${task._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -129,7 +130,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate, onDelete, currentUserId }) 
     const handleDeleteConfirm = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/tasks/${task._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${task._id}`, {
                 method: 'DELETE',
                 headers: { 'x-auth-token': token }
             });

@@ -25,7 +25,7 @@ const DocumentSelectorDrawer = ({ isOpen, onClose, onSelectDocuments, caseId, ac
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/documents', {
+            const res = await axios.get(`${API_BASE_URL}/api/documents', {
                 headers: { 'x-auth-token': token }
             });
             setDocuments(res.data);
@@ -92,7 +92,7 @@ const DocumentSelectorDrawer = ({ isOpen, onClose, onSelectDocuments, caseId, ac
             }
 
             try {
-                await axios.post('http://localhost:5000/api/documents/upload', formData, {
+                await axios.post(`${API_BASE_URL}/api/documents/upload', formData, {
                     headers: {
                         'x-auth-token': token,
                         'Content-Type': 'multipart/form-data'

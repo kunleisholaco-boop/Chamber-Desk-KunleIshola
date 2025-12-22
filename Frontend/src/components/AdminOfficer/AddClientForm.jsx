@@ -121,7 +121,7 @@ const AddClientForm = () => {
                 };
             }
 
-            const response = await fetch('http://localhost:5000/api/clients', {
+            const response = await fetch(`${API_BASE_URL}/api/clients', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

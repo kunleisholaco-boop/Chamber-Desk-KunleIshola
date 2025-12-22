@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { MessageSquare, Plus, XCircle, Send } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const ClientComplaints = () => {
     const { shareToken } = useOutletContext();
@@ -19,7 +20,7 @@ const ClientComplaints = () => {
 
     const fetchComplaints = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/complaints`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/complaints`);
             if (response.ok) {
                 const data = await response.json();
                 setComplaints(data);
@@ -33,7 +34,7 @@ const ClientComplaints = () => {
 
     const fetchCases = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/cases`);
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/cases`);
             if (response.ok) {
                 const data = await response.json();
                 setCases(data);
@@ -49,7 +50,7 @@ const ClientComplaints = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await fetch(`http://localhost:5000/api/client-portal/${shareToken}/complaints`, {
+            const response = await fetch(`${API_BASE_URL}/api/client-portal/${shareToken}/complaints`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

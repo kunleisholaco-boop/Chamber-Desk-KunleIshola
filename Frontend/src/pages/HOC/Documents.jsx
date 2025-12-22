@@ -6,6 +6,7 @@ import {
     Video, Music, PieChart, Users, FileDigit, CheckCircle, AlertCircle, FolderPlus
 } from 'lucide-react';
 import axios from 'axios';
+import API_BASE_URL from '../../../config/api';
 
 const HOCDocuments = () => {
     const [documents, setDocuments] = useState([]);
@@ -55,7 +56,7 @@ const HOCDocuments = () => {
                 setLoading(false);
                 return;
             }
-            const res = await axios.get('http://localhost:5000/api/documents', {
+            const res = await axios.get(`${API_BASE_URL}/api/documents', {
                 headers: { 'x-auth-token': token }
             });
             setDocuments(res.data);
@@ -69,7 +70,7 @@ const HOCDocuments = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/users', {
+            const res = await axios.get(`${API_BASE_URL}/api/users', {
                 headers: { 'x-auth-token': token }
             });
             setUsers(res.data);
@@ -82,7 +83,7 @@ const HOCDocuments = () => {
         try {
             const token = localStorage.getItem('token');
             const user = JSON.parse(localStorage.getItem('user'));
-            const res = await axios.get('http://localhost:5000/api/cases', {
+            const res = await axios.get(`${API_BASE_URL}/api/cases', {
                 headers: { 'x-auth-token': token }
             });
             // Filter cases assigned to the logged-in HOC
@@ -155,7 +156,7 @@ const HOCDocuments = () => {
             formData.append('file', file);
 
             try {
-                await axios.post('http://localhost:5000/api/documents/upload', formData, {
+                await axios.post(`${API_BASE_URL}/api/documents/upload', formData, {
                     headers: {
                         'x-auth-token': token,
                         'Content-Type': 'multipart/form-data'
@@ -190,7 +191,7 @@ const HOCDocuments = () => {
         if (confirmAction === 'delete') {
             try {
                 const token = localStorage.getItem('token');
-                await axios.delete(`http://localhost:5000/api/documents/${confirmData.id}`, {
+                await axios.delete(`${API_BASE_URL}/api/documents/${confirmData.id}`, {
                     headers: { 'x-auth-token': token }
                 });
                 setDocuments(documents.filter(doc => doc._id !== confirmData.id));
@@ -204,7 +205,7 @@ const HOCDocuments = () => {
         } else if (confirmAction === 'unshare') {
             try {
                 const token = localStorage.getItem('token');
-                await axios.put(`http://localhost:5000/api/documents/${confirmData.docId}/unshare`,
+                await axios.put(`${API_BASE_URL}/api/documents/${confirmData.docId}/unshare`,
                     { userId: confirmData.userId },
                     { headers: { 'x-auth-token': token } }
                 );
@@ -236,7 +237,7 @@ const HOCDocuments = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/documents/${selectedDoc._id}/share`,
+            await axios.put(`${API_BASE_URL}/api/documents/${selectedDoc._id}/share`,
                 { userIds: selectedUserIds },
                 { headers: { 'x-auth-token': token } }
             );
@@ -283,7 +284,7 @@ const HOCDocuments = () => {
             const token = localStorage.getItem('token');
             for (const caseId of selectedCaseIds) {
                 await axios.put(
-                    `http://localhost:5000/api/documents/${selectedDoc._id}/link-to-case`,
+                    `${API_BASE_URL}/api/documents/${selectedDoc._id}/link-to-case`,
                     { caseId },
                     { headers: { 'x-auth-token': token } }
                 );

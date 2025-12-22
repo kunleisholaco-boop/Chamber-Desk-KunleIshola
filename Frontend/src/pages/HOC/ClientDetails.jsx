@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
+import API_BASE_URL from '../../../config/api';
     ArrowLeft,
     User, Mail, Phone, MapPin, Building, Calendar,
     Briefcase, Users, FileText, AlertCircle, Plus,
@@ -25,7 +26,7 @@ const ClientDetails = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/clients/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -45,7 +46,7 @@ const ClientDetails = () => {
     const fetchClientCases = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/client/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/client/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 

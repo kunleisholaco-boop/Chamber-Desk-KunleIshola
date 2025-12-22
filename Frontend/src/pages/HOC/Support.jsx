@@ -3,6 +3,7 @@ import { MessageSquare, Lightbulb, Send, Paperclip, X, Eye } from 'lucide-react'
 import axios from 'axios';
 import DocumentSelectorDrawer from '../../components/DocumentSelectorDrawer';
 import SupportTicketDetail from '../../components/SupportTicketDetail';
+import API_BASE_URL from '../../../config/api';
 
 const HOCSupport = () => {
     const [activeView, setActiveView] = useState('menu');
@@ -28,7 +29,7 @@ const HOCSupport = () => {
     const fetchTickets = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/support', {
+            const res = await axios.get(`${API_BASE_URL}/api/support', {
                 headers: { 'x-auth-token': token }
             });
 
@@ -77,7 +78,7 @@ const HOCSupport = () => {
                 attachments: selectedDocuments.map(doc => doc._id)
             };
 
-            await axios.post('http://localhost:5000/api/support', payload, {
+            await axios.post(`${API_BASE_URL}/api/support', payload, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -99,7 +100,7 @@ const HOCSupport = () => {
     const handleViewTicket = async (ticketId) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/support/${ticketId}`, {
+            const res = await axios.get(`${API_BASE_URL}/api/support/${ticketId}`, {
                 headers: { 'x-auth-token': token }
             });
             setSelectedTicket(res.data);

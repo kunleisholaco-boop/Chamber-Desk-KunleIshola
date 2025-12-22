@@ -27,7 +27,7 @@ const Funds = () => {
             const user = JSON.parse(localStorage.getItem('user'));
             const currentUserId = user?.id;
 
-            const response = await fetch('http://localhost:5000/api/funds', {
+            const response = await fetch(`${API_BASE_URL}/api/funds', {
                 headers: { 'x-auth-token': token }
             });
 

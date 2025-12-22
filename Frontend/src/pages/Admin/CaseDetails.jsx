@@ -14,6 +14,7 @@ import UpdateOpposingCounselModal from '../../components/AdminOfficer/UpdateOppo
 import OpposingCounselSection from '../../components/AdminOfficer/OpposingCounselSection';
 import ShareCaseLinkModal from '../../components/AdminOfficer/ShareCaseLinkModal';
 import ClientReportModal from '../../components/AdminOfficer/ClientReportModal';
+import API_BASE_URL from '../../../config/api';
 
 const CaseDetails = () => {
     const { id } = useParams();
@@ -62,7 +63,7 @@ const CaseDetails = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -84,7 +85,7 @@ const CaseDetails = () => {
     const fetchLawyers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/users/lawyers', {
+            const response = await fetch(`${API_BASE_URL}/api/users/lawyers', {
                 headers: { 'x-auth-token': token }
             });
 
@@ -100,7 +101,7 @@ const CaseDetails = () => {
     const fetchClientOpenCaseStatus = async (clientId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/clients/${clientId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/clients/${clientId}`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -126,7 +127,7 @@ const CaseDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${id}/assign-lawyers`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/assign-lawyers`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ const CaseDetails = () => {
         setIsAssigning(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${id}/status`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -204,7 +205,7 @@ const CaseDetails = () => {
         setIsAssigning(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${id}/opposing-counsel`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/opposing-counsel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -232,7 +233,7 @@ const CaseDetails = () => {
         setIsAssigning(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/cases/${id}/client-report`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/client-report`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -288,7 +289,7 @@ const CaseDetails = () => {
         setLoadingDocuments(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/documents/case/${id}`, {
+            const res = await axios.get(`${API_BASE_URL}/api/documents/case/${id}`, {
                 headers: { 'x-auth-token': token }
             });
             setCaseDocuments(res.data);
@@ -302,7 +303,7 @@ const CaseDetails = () => {
         try {
             const token = localStorage.getItem('token');
             for (const doc of selectedDocs) {
-                await axios.put(`http://localhost:5000/api/documents/${doc._id}/link-to-case`,
+                await axios.put(`${API_BASE_URL}/api/documents/${doc._id}/link-to-case`,
                     { caseId: id },
                     { headers: { 'x-auth-token': token } }
                 );
@@ -325,7 +326,7 @@ const CaseDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/documents/${documentToRemove._id}/unlink-from-case`, {}, {
+            await axios.put(`${API_BASE_URL}/api/documents/${documentToRemove._id}/unlink-from-case`, {}, {
                 headers: { 'x-auth-token': token }
             });
             setMessage({ type: 'success', text: 'Document removed from case library' });
@@ -349,7 +350,7 @@ const CaseDetails = () => {
                 courtInfoAction: modalMode // 'add' or 'edit'
             };
 
-            const response = await fetch(`http://localhost:5000/api/cases/${id}/court-details`, {
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/court-details`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

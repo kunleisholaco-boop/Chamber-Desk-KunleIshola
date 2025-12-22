@@ -23,14 +23,6 @@ const storage = new CloudinaryStorage({
 
         const resourceType = isImage ? 'image' : 'raw';
 
-        console.log('=== CLOUDINARY UPLOAD CONFIG ===');
-        console.log('File:', file.originalname);
-        console.log('Extension:', ext);
-        console.log('MIME Type:', file.mimetype);
-        console.log('Is Image?:', isImage);
-        console.log('Resource Type:', resourceType);
-        console.log('================================');
-
         return {
             folder: 'chamber_desk_documents',
             resource_type: resourceType, // Use 'raw' for PDFs and documents

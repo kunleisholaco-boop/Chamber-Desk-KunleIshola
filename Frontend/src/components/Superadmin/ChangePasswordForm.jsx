@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Key, Save, X, Eye, EyeOff } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const ChangePasswordForm = ({ user, onSuccess, onCancel }) => {
     const [password, setPassword] = useState('');
@@ -22,7 +23,7 @@ const ChangePasswordForm = ({ user, onSuccess, onCancel }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/auth/users/${user._id}/password`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/users/${user._id}/password`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

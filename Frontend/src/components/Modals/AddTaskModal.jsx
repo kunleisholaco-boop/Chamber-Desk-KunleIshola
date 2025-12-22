@@ -32,8 +32,8 @@ const AddTaskModal = ({ isOpen, onClose, onSuccess, initialStatus = 'To-Do' }) =
         try {
             const token = localStorage.getItem('token');
             const [casesRes, usersRes] = await Promise.all([
-                fetch('http://localhost:5000/api/cases', { headers: { 'x-auth-token': token } }),
-                fetch('http://localhost:5000/api/users/selectable', { headers: { 'x-auth-token': token } })
+                fetch(`${API_BASE_URL}/api/cases', { headers: { 'x-auth-token': token } }),
+                fetch(`${API_BASE_URL}/api/users/selectable', { headers: { 'x-auth-token': token } })
             ]);
 
             if (casesRes.ok) {
@@ -61,7 +61,7 @@ const AddTaskModal = ({ isOpen, onClose, onSuccess, initialStatus = 'To-Do' }) =
                 caseId: formData.hasCase === 'yes' ? formData.caseId : null
             };
 
-            const response = await fetch('http://localhost:5000/api/tasks', {
+            const response = await fetch(`${API_BASE_URL}/api/tasks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

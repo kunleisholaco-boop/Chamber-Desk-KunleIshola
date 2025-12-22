@@ -64,13 +64,13 @@ const Home = () => {
                 const token = localStorage.getItem('token');
 
                 // Fetch users
-                const usersResponse = await fetch('http://localhost:5000/api/auth/users', {
+                const usersResponse = await fetch(`${API_BASE_URL}/api/auth/users', {
                     headers: { 'x-auth-token': token }
                 });
                 const users = await usersResponse.json();
 
                 // Fetch support tickets
-                const ticketsResponse = await fetch('http://localhost:5000/api/support/all', {
+                const ticketsResponse = await fetch(`${API_BASE_URL}/api/support/all', {
                     headers: { 'x-auth-token': token }
                 });
                 const tickets = await ticketsResponse.json();
@@ -165,7 +165,7 @@ const Home = () => {
                 }
 
                 // Fetch notifications
-                const notificationsResponse = await fetch('http://localhost:5000/api/notifications', {
+                const notificationsResponse = await fetch(`${API_BASE_URL}/api/notifications', {
                     headers: { 'x-auth-token': token }
                 });
                 const notifications = await notificationsResponse.json();

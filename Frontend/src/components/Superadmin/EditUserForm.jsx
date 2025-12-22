@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserCog, Briefcase, Save, X } from 'lucide-react';
+import API_BASE_URL from '../../../config/api';
 
 const EditUserForm = ({ user, onSuccess, onCancel }) => {
     const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ const EditUserForm = ({ user, onSuccess, onCancel }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/auth/users/${user._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/users/${user._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

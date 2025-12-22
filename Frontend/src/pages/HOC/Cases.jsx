@@ -20,7 +20,7 @@ const Cases = () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.id;
 
-            const response = await fetch('http://localhost:5000/api/cases', {
+            const response = await fetch(`${API_BASE_URL}/api/cases', {
                 headers: {
                     'x-auth-token': token
                 }

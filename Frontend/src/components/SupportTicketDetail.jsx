@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, Paperclip, Download, User, Calendar } from 'lucide-react';
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 
 const SupportTicketDetail = ({ ticket, isOpen, onClose, onUpdate, userRole }) => {
     const [replyMessage, setReplyMessage] = useState('');
@@ -17,7 +18,7 @@ const SupportTicketDetail = ({ ticket, isOpen, onClose, onUpdate, userRole }) =>
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post(
-                `http://localhost:5000/api/support/${ticket._id}/reply`,
+                `${API_BASE_URL}/api/support/${ticket._id}/reply`,
                 { message: replyMessage },
                 { headers: { 'x-auth-token': token } }
             );
@@ -36,7 +37,7 @@ const SupportTicketDetail = ({ ticket, isOpen, onClose, onUpdate, userRole }) =>
         try {
             const token = localStorage.getItem('token');
             const res = await axios.put(
-                `http://localhost:5000/api/support/${ticket._id}/status`,
+                `${API_BASE_URL}/api/support/${ticket._id}/status`,
                 { status: newStatus },
                 { headers: { 'x-auth-token': token } }
             );
