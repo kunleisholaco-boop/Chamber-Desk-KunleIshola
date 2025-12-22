@@ -9,9 +9,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    host: '0.0.0.0',
+    port: process.env.PORT || 8000,
+    allowedHosts: 'all',
+  },
   preview: {
     host: '0.0.0.0',
     port: process.env.PORT || 8000,
-    allowedHosts: ['all'],
+    allowedHosts: 'all',
   },
 })
