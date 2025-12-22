@@ -21,5 +21,10 @@ export default defineConfig({
     host: true,
     port: process.env.PORT || 8000,
     strictPort: false,
+    allowedHosts: [
+      'querulous-ashien-khrien-29067abe.koyeb.app',
+      '.koyeb.app',
+      'localhost',
+    ],
   },
 })
