@@ -1,32 +1,11 @@
-import { Home, FileText, DollarSign, FolderOpen, Bell, LogOut, Headphones, Users } from 'lucide-react';
+import { Home, FileText, DollarSign, FolderOpen, LogOut, Headphones, Users, CheckSquare, Calendar, Radio } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 
-const HOCSidebar = () => {
+const HOCSidebar = ({ onNavigate }) => {
     const location = useLocation();
-    const [unreadCount, setUnreadCount] = useState(0);
-
-    useEffect(() => {
-        fetchUnreadCount();
-        // Poll for new notifications every 30 seconds
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const fetchUnreadCount = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_BASE_URL}/api/notifications`, {
-                headers: { 'x-auth-token': token }
-            });
-            const unread = res.data.filter(n => !n.read).length;
-            setUnreadCount(unread);
-        } catch (err) {
-            console.error('Error fetching notifications:', err);
-        }
-    };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -51,39 +30,42 @@ const HOCSidebar = () => {
             </div>
 
             <nav className="p-4 space-y-2 flex-1">
-                <Link to="/hoc" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc')}`}>
+                <Link to="/hoc" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc')}`}>
                     <Home size={20} />
                     <span>Home</span>
                 </Link>
-                <Link to="/hoc/clients" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/clients')}`}>
+                <Link to="/hoc/clients" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/clients')}`}>
                     <Users size={20} />
                     <span>Clients</span>
                 </Link>
-                <Link to="/hoc/cases" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/cases')}`}>
+                <Link to="/hoc/cases" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/cases')}`}>
                     <FileText size={20} />
                     <span>Cases</span>
                 </Link>
-                <Link to="/hoc/funds" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/funds')}`}>
+                <Link to="/hoc/tasks" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/tasks')}`}>
+                    <CheckSquare size={20} />
+                    <span>Tasks</span>
+                </Link>
+                <Link to="/hoc/meetings" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/meetings')}`}>
+                    <Calendar size={20} />
+                    <span>Meetings</span>
+                </Link>
+                <Link to="/hoc/broadcast" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/broadcast')}`}>
+                    <Radio size={20} />
+                    <span>Broadcast</span>
+                </Link>
+                <Link to="/hoc/funds" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/funds')}`}>
                     <DollarSign size={20} />
                     <span>Funds</span>
                 </Link>
-                <Link to="/hoc/documents" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/documents')}`}>
+                <Link to="/hoc/documents" onClick={onNavigate} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/documents')}`}>
                     <FolderOpen size={20} />
                     <span>Documents</span>
-                </Link>
-                <Link to="/hoc/notifications" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/hoc/notifications')} relative`}>
-                    <Bell size={20} />
-                    <span>Notifications</span>
-                    {unreadCount > 0 && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                    )}
                 </Link>
             </nav>
 
             <div className="p-4 border-t border-purple-800 space-y-2">
-                <Link to="/hoc/support" className="flex items-center gap-3 px-4 py-3 text-purple-200 hover:text-white hover:bg-purple-800 rounded-lg transition-colors w-full">
+                <Link to="/hoc/support" onClick={onNavigate} className="flex items-center gap-3 px-4 py-3 text-purple-200 hover:text-white hover:bg-purple-800 rounded-lg transition-colors w-full">
                     <Headphones size={20} />
                     <span>Reach Tech Support</span>
                 </Link>

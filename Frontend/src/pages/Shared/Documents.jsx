@@ -10,6 +10,12 @@ import { useLocation } from 'react-router-dom';
 import API_BASE_URL from '../../config/api';
 
 const Documents = () => {
+    // Get user role from localStorage for dynamic theming
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role || 'Admin';
+    const rolePrefix = userRole === 'HOC' ? '/hoc' : '/admin';
+    const primaryColor = userRole === 'HOC' ? 'purple' : 'orange';
+
     const location = useLocation();
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -94,7 +100,22 @@ const Documents = () => {
             const res = await axios.get(`${API_BASE_URL}/api/cases`, {
                 headers: { 'x-auth-token': token }
             });
-            setCases(res.data);
+
+            // Filter cases based on role
+            let filteredCases = res.data;
+
+            // Only Lawyers and Paralegals see filtered cases
+            if (user.role === 'Lawyer' || user.role === 'Paralegal') {
+                filteredCases = res.data.filter(caseItem =>
+                    caseItem.assignedTo &&
+                    (typeof caseItem.assignedTo === 'string'
+                        ? caseItem.assignedTo === user.id
+                        : caseItem.assignedTo._id === user.id)
+                );
+            }
+            // Admin, HOC, Manager see all cases
+
+            setCases(filteredCases);
         } catch (err) {
             console.error('Error fetching cases:', err);
         }
@@ -400,7 +421,7 @@ const Documents = () => {
                     <button
                         onClick={() => fileInputRef.current.click()}
                         disabled={uploading}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
+                        className={`flex items-center gap-2 px-6 py-2.5 bg-${primaryColor}-600 text-white font-semibold rounded-lg hover:bg-${primaryColor}-700 transition-colors disabled:opacity-50`}
                     >
                         {uploading ? 'Uploading...' : <><Upload size={20} /> Upload Files</>}
                     </button>
@@ -421,7 +442,7 @@ const Documents = () => {
                         <Folder size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">All Documents</p>
+                        <p className="text-sm text-gray-500">My Documents</p>
                         <p className="text-xl font-bold text-gray-800">{stats.total}</p>
                     </div>
                 </div>
@@ -444,7 +465,7 @@ const Documents = () => {
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="p-3 bg-orange-50 text-orange-600 rounded-lg">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
                         <FileDigit size={24} />
                     </div>
                     <div>
@@ -462,7 +483,7 @@ const Documents = () => {
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="p-3 bg-orange-50 text-orange-600 rounded-lg">
+                    <div className="p-3 bg-red-50 text-red-400 rounded-lg">
                         <FileText size={24} />
                     </div>
                     <div>
@@ -513,7 +534,7 @@ const Documents = () => {
                 <button
                     onClick={() => setActiveTab('my-documents')}
                     className={`px-4 py-2 font-medium transition-colors relative ${activeTab === 'my-documents'
-                        ? 'text-orange-600 border-b-2 border-orange-600'
+                        ? `text-${primaryColor}-600 border-b-2 border-${primaryColor}-600`
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
@@ -522,7 +543,7 @@ const Documents = () => {
                 <button
                     onClick={() => setActiveTab('shared-with-me')}
                     className={`px-4 py-2 font-medium transition-colors relative ${activeTab === 'shared-with-me'
-                        ? 'text-orange-600 border-b-2 border-orange-600'
+                        ? `text-${primaryColor}-600 border-b-2 border-${primaryColor}-600`
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
@@ -531,25 +552,25 @@ const Documents = () => {
             </div>
 
             {/* Search and Controls */}
-            <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="relative w-96">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="relative w-full md:w-96">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
                         placeholder="Search documents..."
-                        className="w-full text-black pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className={`w-full text-black pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                     <div className="flex items-center gap-2">
-                        <File size={18} className="text-gray-500" />
+                        <File size={18} className="text-gray-500 hidden sm:block" />
                         <select
                             value={filterByType}
                             onChange={(e) => setFilterByType(e.target.value)}
-                            className="px-3 py-2 text-black border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                            className={`w-full sm:w-auto px-3 py-2 text-black border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500 text-sm`}
                         >
                             <option value="all">All Files</option>
                             <option value="pdf">PDF</option>
@@ -563,11 +584,11 @@ const Documents = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <ArrowUpDown size={18} className="text-gray-500" />
+                        <ArrowUpDown size={18} className="text-gray-500 hidden sm:block" />
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="px-3 py-2 text-black border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                            className={`w-full sm:w-auto px-3 py-2 text-black border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500 text-sm`}
                         >
                             <option value="date">Date Uploaded</option>
                             <option value="name">Alphabetically</option>
@@ -578,13 +599,13 @@ const Documents = () => {
                     <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? `bg-white shadow-sm text-${primaryColor}-600` : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <Grid size={20} />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? `bg-white shadow-sm text-${primaryColor}-600` : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <ListIcon size={20} />
                         </button>
@@ -615,7 +636,7 @@ const Documents = () => {
 
             {loading ? (
                 <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+                    <div className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${primaryColor}-600`}></div>
                 </div>
             ) : filteredDocuments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-500">
@@ -650,7 +671,7 @@ const Documents = () => {
                                             {activeTab === 'my-documents' && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); fetchUsers(); setShowShareModal(true); }}
-                                                    className="p-2 hover:bg-orange-50 text-gray-500 hover:text-orange-600 rounded-lg transition-colors"
+                                                    className={`p-2 hover:bg-${primaryColor}-50 text-gray-500 hover:text-${primaryColor}-600 rounded-lg transition-colors`}
                                                     title="Share"
                                                 >
                                                     <Share2 size={18} />
@@ -724,7 +745,7 @@ const Documents = () => {
                                                     {activeTab === 'my-documents' && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); fetchUsers(); setShowShareModal(true); }}
-                                                            className="p-2 hover:bg-orange-50 text-gray-400 hover:text-orange-600 rounded-lg"
+                                                            className={`p-2 hover:bg-${primaryColor}-50 text-gray-400 hover:text-${primaryColor}-600 rounded-lg`}
                                                         >
                                                             <Share2 size={18} />
                                                         </button>
@@ -778,7 +799,7 @@ const Documents = () => {
                             </p>
                             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                 <div
-                                    className="bg-orange-600 h-full transition-all duration-300 ease-out rounded-full"
+                                    className={`bg-${primaryColor}-600 h-full transition-all duration-300 ease-out rounded-full`}
                                     style={{ width: `${uploadProgress}%` }}
                                 ></div>
                             </div>
@@ -804,7 +825,7 @@ const Documents = () => {
                             <input
                                 type="text"
                                 placeholder="Search users by name or email..."
-                                className="w-full text-black px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                className={`w-full text-black px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500`}
                                 value={shareSearch}
                                 onChange={(e) => setShareSearch(e.target.value)}
                             />
@@ -820,12 +841,12 @@ const Documents = () => {
                                 return (
                                     <div
                                         key={user._id}
-                                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-orange-50 border border-orange-200' : 'hover:bg-gray-50 border border-transparent'
+                                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? `bg-${primaryColor}-50 border border-${primaryColor}-200` : 'hover:bg-gray-50 border border-transparent'
                                             }`}
                                         onClick={() => !isAlreadyShared && toggleUserSelection(user._id)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${isSelected ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600'
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${isSelected ? `bg-${primaryColor}-600 text-white` : `bg-${primaryColor}-100 text-${primaryColor}-600`
                                                 }`}>
                                                 {isSelected ? <Check size={16} /> : user.name.charAt(0)}
                                             </div>
@@ -860,7 +881,7 @@ const Documents = () => {
                             <button
                                 onClick={handleShareSubmit}
                                 disabled={selectedUserIds.length === 0}
-                                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`flex-1 px-4 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
                                 Share ({selectedUserIds.length})
                             </button>
@@ -971,7 +992,7 @@ const Documents = () => {
                                 onClick={confirmActionHandler}
                                 className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${confirmAction === 'delete'
                                     ? 'bg-red-600 hover:bg-red-700'
-                                    : 'bg-orange-600 hover:bg-orange-700'
+                                    : `bg-${primaryColor}-600 hover:bg-${primaryColor}-700`
                                     }`}
                             >
                                 {confirmAction === 'delete' ? 'Delete' : 'Unshare'}
@@ -995,7 +1016,7 @@ const Documents = () => {
                             <input
                                 type="text"
                                 placeholder="Search cases by title..."
-                                className="w-full text-black px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                className="w-full text-black px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500"
                                 value={caseSearch}
                                 onChange={(e) => setCaseSearch(e.target.value)}
                             />
@@ -1049,3 +1070,4 @@ const Documents = () => {
 };
 
 export default Documents;
+

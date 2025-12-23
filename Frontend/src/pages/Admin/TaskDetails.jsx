@@ -13,6 +13,13 @@ import API_BASE_URL from '../../config/api';
 const TaskDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    // Get user role from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role || 'Admin';
+    const rolePrefix = userRole === 'HOC' ? '/hoc' : '/admin';
+    const primaryColor = userRole === 'HOC' ? 'purple' : 'orange';
+
     const [task, setTask] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [newSubtask, setNewSubtask] = useState('');
@@ -40,9 +47,14 @@ const TaskDetails = () => {
     const [mentionSearch, setMentionSearch] = useState('');
     const [mentionStartPos, setMentionStartPos] = useState(0);
     const [commentTextareaRef] = useState(React.createRef());
+    const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isPostingComment, setIsPostingComment] = useState(false);
 
     useEffect(() => {
         fetchTask();
+        fetchDropdownData(); // Fetch dropdown data once on mount
     }, [id]);
 
     const fetchTask = async () => {
@@ -109,8 +121,8 @@ const TaskDetails = () => {
             if (response.ok) {
                 const updatedTask = await response.json();
                 setTask(updatedTask);
-                // Auto-reload to refresh the page
-                window.location.reload();
+                // Refresh task data
+                fetchTask();
             }
         } catch (err) {
             console.error('Error updating status:', err);
@@ -226,7 +238,7 @@ const TaskDetails = () => {
     };
 
     const handleEditClick = async () => {
-        await fetchDropdownData();
+        // Show modal immediately - dropdown data already loaded on mount
         setEditFormData({
             name: task.name,
             description: task.description || '',
@@ -265,6 +277,7 @@ const TaskDetails = () => {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
+        setIsSaving(true);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
@@ -280,15 +293,18 @@ const TaskDetails = () => {
                 const updatedTask = await response.json();
                 setTask(updatedTask);
                 setShowEditModal(false);
-                // Auto-reload to refresh the page
-                window.location.reload();
+                // Refresh task data
+                fetchTask();
             }
         } catch (err) {
             console.error('Error updating task:', err);
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleDeleteConfirm = async () => {
+        setIsDeleting(true);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
@@ -297,10 +313,12 @@ const TaskDetails = () => {
             });
 
             if (response.ok) {
-                navigate('/admin/tasks');
+                navigate(`${rolePrefix}/tasks`);
             }
         } catch (err) {
             console.error('Error deleting task:', err);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -408,11 +426,19 @@ const TaskDetails = () => {
         const beforeMention = newComment.substring(0, mentionStartPos);
         const afterMention = newComment.substring(commentTextareaRef.current.selectionStart);
         const newText = `${beforeMention}@${user.name} ${afterMention}`;
+        const cursorPosition = beforeMention.length + user.name.length + 2; // +2 for @ and space
+
         setNewComment(newText);
         setShowMentionDropdown(false);
         setMentionSearch('');
-        // Focus back on textarea
-        setTimeout(() => commentTextareaRef.current?.focus(), 0);
+
+        // Focus and set cursor position after the mention
+        setTimeout(() => {
+            if (commentTextareaRef.current) {
+                commentTextareaRef.current.focus();
+                commentTextareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+            }
+        }, 0);
     };
 
     const getTaskForceMembers = () => {
@@ -454,8 +480,9 @@ const TaskDetails = () => {
     };
 
     const handleAddComment = async () => {
-        if (!newComment.trim()) return;
+        if (!newComment.trim() || isPostingComment) return;
 
+        setIsPostingComment(true);
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
@@ -470,6 +497,8 @@ const TaskDetails = () => {
             setShowMentionDropdown(false);
         } catch (err) {
             console.error('Error adding comment:', err);
+        } finally {
+            setIsPostingComment(false);
         }
     };
 
@@ -563,7 +592,7 @@ const TaskDetails = () => {
                     <h3 className="text-lg font-medium text-gray-900">Task Not Found</h3>
                     <p className="text-gray-500 mt-2">The task you're looking for doesn't exist.</p>
                     <button
-                        onClick={() => navigate('/admin/tasks')}
+                        onClick={() => navigate(`${rolePrefix}/tasks`)}
                         className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                     >
                         Back to Tasks
@@ -620,7 +649,7 @@ const TaskDetails = () => {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="mb-6">
                 <button
-                    onClick={() => navigate('/admin/tasks')}
+                    onClick={() => navigate(`${rolePrefix}/tasks`)}
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -690,7 +719,7 @@ const TaskDetails = () => {
                 {/* Left Column - Case Details and Case Library */}
                 <div className="lg:col-span-2 space-y-6 relative">
                     {/* Case Details Section - Always show, with overlay if no case attached */}
-                    <div className={`bg-gradient-to-br from-orange-600 to-orange-400 rounded-3xl p-8 text-white ${!task.case ? 'blur-sm' : ''}`}>
+                    <div className={`bg-${primaryColor}-500 rounded-3xl p-8 text-white ${!task.case ? 'blur-sm' : ''}`}>
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                                 <Briefcase className="w-6 h-6 text-white" />
@@ -737,16 +766,16 @@ const TaskDetails = () => {
                     <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${!task.case ? 'blur-sm' : ''}`}>
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                                <FolderOpen className="w-5 h-5 text-orange-600" />
+                                <FolderOpen className={`w-5 h-5 text-${primaryColor}-600`} />
                                 <h3 className="text-lg font-semibold text-gray-900">Case Library</h3>
-                                <span className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full">
+                                <span className={`px-2 py-1 text-xs bg-${primaryColor}-100 text-${primaryColor}-700 rounded-full`}>
                                     {caseDocuments.length} {caseDocuments.length === 1 ? 'Document' : 'Documents'}
                                 </span>
                             </div>
                             <button
                                 onClick={() => task.case && setShowDocumentDrawer(true)}
                                 disabled={!task.case}
-                                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                className={`flex items-center gap-2 px-4 py-2 bg-${primaryColor}-600 text-white font-semibold rounded-lg hover:bg-${primaryColor}-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed`}
                             >
                                 <Plus size={20} />
                                 Add Files
@@ -1122,11 +1151,11 @@ const TaskDetails = () => {
                             <div className="flex justify-end mt-2">
                                 <button
                                     onClick={handleAddComment}
-                                    disabled={!newComment.trim()}
+                                    disabled={!newComment.trim() || isPostingComment}
                                     className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Send className="w-4 h-4" />
-                                    Post Comment
+                                    {isPostingComment ? 'Posting...' : 'Post Comment'}
                                 </button>
                             </div>
                         </div>
@@ -1263,6 +1292,8 @@ const TaskDetails = () => {
                 availableForCollaboration={availableForCollaboration}
                 toggleAssignee={toggleAssignee}
                 toggleCollaborator={toggleCollaborator}
+                isLoading={isLoadingEdit}
+                isSaving={isSaving}
             />
 
             {/* Delete Confirmation Modal */}
@@ -1271,6 +1302,7 @@ const TaskDetails = () => {
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={handleDeleteConfirm}
                 taskName={task.name}
+                isDeleting={isDeleting}
             />
 
             {/* Document Selector Drawer */}

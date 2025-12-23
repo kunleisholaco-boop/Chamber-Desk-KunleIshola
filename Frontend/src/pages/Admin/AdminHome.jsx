@@ -229,7 +229,7 @@ const AdminHome = () => {
             {/* Action Center */}
             <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                     <button onClick={() => navigate('/admin/clients/add')} className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex flex-col items-center gap-3">
                         <div className="p-3 bg-white/20 rounded-lg"><UserPlus className="w-6 h-6" /></div>
                         <span className="font-semibold text-sm">Add Client</span>

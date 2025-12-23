@@ -6,6 +6,13 @@ import API_BASE_URL from '../../config/api';
 
 const Meetings = () => {
     const location = useLocation();
+
+    // Get user role from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role || 'Admin';
+    const rolePrefix = userRole === 'HOC' ? '/hoc' : '/admin';
+    const primaryColor = userRole === 'HOC' ? 'purple' : 'orange';
+
     const [meetings, setMeetings] = useState([]);
     const [users, setUsers] = useState([]); // Store selectable users
     const [clients, setClients] = useState([]); // Store selectable clients
@@ -434,7 +441,7 @@ const Meetings = () => {
                 </div>
                 <button
                     onClick={() => { resetForm(); setShowModal(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                    className={`flex items-center gap-2 px-4 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700 transition-colors`}
                 >
                     <Plus className="w-5 h-5" />
                     Schedule Meeting
@@ -445,14 +452,14 @@ const Meetings = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 overflow-hidden">
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
                     <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <CalendarIcon className="w-5 h-5 text-orange-600" />
+                        <CalendarIcon className={`w-5 h-5 text-${primaryColor}-600`} />
                         {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                     </h2>
                     <div className="flex gap-2">
-                        <button onClick={handlePrevMonth} className="p-1 bg-black hover:bg-orange-500 text-white rounded-full">
+                        <button onClick={handlePrevMonth} className={`p-1 bg-black hover:bg-${primaryColor}-500 text-white rounded-full`}>
                             <ChevronLeft className="w-5 h-5" />
                         </button>
-                        <button onClick={handleNextMonth} className="p-1 bg-black hover:bg-orange-500 text-white rounded-full">
+                        <button onClick={handleNextMonth} className={`p-1 bg-black hover:bg-${primaryColor}-500 text-white rounded-full`}>
                             <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
@@ -481,10 +488,10 @@ const Meetings = () => {
                                 key={day}
                                 onClick={() => !isPast && handleDateClick(day)}
                                 className={`h-32 border-b border-r border-gray-100 p-2 relative group transition-colors 
-                                    ${isPast ? 'bg-gray-50/50 cursor-not-allowed' : 'hover:bg-orange-50/30 cursor-pointer'} 
-                                    ${isToday ? 'bg-orange-50' : ''}`}
+                                    ${isPast ? 'bg-gray-50/50 cursor-not-allowed' : `hover:bg-${primaryColor}-50/30 cursor-pointer`} 
+                                    ${isToday ? `bg-${primaryColor}-50` : ''}`}
                             >
-                                <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-orange-600 text-white' : 'text-gray-700'}`}>
+                                <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday ? `bg-${primaryColor}-600 text-white` : 'text-gray-700'}`}>
                                     {day}
                                 </span>
                                 <div className="mt-1 space-y-1 overflow-y-auto max-h-[calc(100%-2rem)]">
@@ -492,7 +499,7 @@ const Meetings = () => {
                                         <button
                                             key={meeting._id}
                                             onClick={(e) => { e.stopPropagation(); openDetails(meeting); }}
-                                            className="w-full text-left text-xs p-1 bg-orange-100 text-orange-800 rounded truncate flex items-center gap-1 hover:bg-orange-200 transition-colors"
+                                            className={`w-full text-left text-xs p-1 bg-${primaryColor}-100 text-${primaryColor}-800 rounded truncate flex items-center gap-1 hover:bg-${primaryColor}-200 transition-colors`}
                                             title={`${meeting.time} - ${meeting.title}`}
                                         >
                                             {meeting.type === 'Online' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
@@ -518,7 +525,7 @@ const Meetings = () => {
                             value={filterDate}
                             onChange={(e) => setFilterDate(e.target.value)}
                             onClick={() => filterDateInputRef.current?.showPicker()}
-                            className="pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer text-black"
+                            className={`pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-${primaryColor}-500 cursor-pointer text-black`}
                         />
                     </div>
                 </div>
@@ -537,7 +544,7 @@ const Meetings = () => {
                                     className={`p-4 hover:bg-gray-50 transition-colors flex items-center justify-between group cursor-pointer ${isCancelled ? 'opacity-75' : ''}`}
                                 >
                                     <div className="flex items-start gap-4">
-                                        <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center ${isCancelled ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                                        <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center ${isCancelled ? 'bg-red-100 text-red-700' : 'bg-${primaryColor}-100 text-${primaryColor}-700'}`}>
                                             <span className="text-xs font-bold uppercase">{new Date(meeting.date).toLocaleString('default', { month: 'short' })}</span>
                                             <span className="text-lg font-bold">{new Date(meeting.date).getDate()}</span>
                                         </div>
@@ -573,7 +580,7 @@ const Meetings = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    {!isCancelled && currentUser && meeting.createdBy === currentUser._id && (
+                                    {!isCancelled && currentUser && !meeting.clientCreator && meeting.createdBy === currentUser._id && (
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleEditClick(meeting); }}
@@ -623,7 +630,7 @@ const Meetings = () => {
                                     required
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-3 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    className={`w-full px-3 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-${primaryColor}-500`}
                                     placeholder="e.g., Weekly Team Sync"
                                 />
                             </div>
@@ -640,7 +647,7 @@ const Meetings = () => {
                                             value={formData.date}
                                             onChange={e => setFormData({ ...formData, date: e.target.value })}
                                             onClick={() => dateInputRef.current?.showPicker()}
-                                            className="w-full px-3 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 cursor-pointer"
+                                            className={`w-full px-3 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-${primaryColor}-500 cursor-pointer`}
                                         />
                                     </div>
                                 </div>
@@ -650,7 +657,7 @@ const Meetings = () => {
                                         <select
                                             value={timeState.hour}
                                             onChange={e => setTimeState({ ...timeState, hour: e.target.value })}
-                                            className="px-2 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                            className={`px-2 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500`}
                                         >
                                             {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
                                                 <option key={h} value={h}>{h}</option>
@@ -660,7 +667,7 @@ const Meetings = () => {
                                         <select
                                             value={timeState.minute}
                                             onChange={e => setTimeState({ ...timeState, minute: e.target.value })}
-                                            className="px-2 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                            className={`px-2 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500`}
                                         >
                                             {['00', '15', '30', '45'].map(m => (
                                                 <option key={m} value={m}>{m}</option>
@@ -669,7 +676,7 @@ const Meetings = () => {
                                         <select
                                             value={timeState.period}
                                             onChange={e => setTimeState({ ...timeState, period: e.target.value })}
-                                            className="px-2 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                            className={`px-2 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500`}
                                         >
                                             <option value="AM">AM</option>
                                             <option value="PM">PM</option>
@@ -689,7 +696,7 @@ const Meetings = () => {
                                             value="Physical"
                                             checked={formData.type === 'Physical'}
                                             onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                            className="text-orange-600 text-black focus:ring-orange-500"
+                                            className={`text-${primaryColor}-600 text-black focus:ring-${primaryColor}-500`}
                                         />
                                         <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Physical</span>
                                     </label>
@@ -700,7 +707,7 @@ const Meetings = () => {
                                             value="Online"
                                             checked={formData.type === 'Online'}
                                             onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                            className="text-orange-600 text-black focus:ring-orange-500"
+                                            className={`text-${primaryColor}-600 text-black focus:ring-${primaryColor}-500`}
                                         />
                                         <span className="flex items-center gap-1"><Video className="w-4 h-4" /> Online</span>
                                     </label>
@@ -716,7 +723,7 @@ const Meetings = () => {
                                         required
                                         value={formData.location}
                                         onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                        className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                        className={`w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-${primaryColor}-500`}
                                         placeholder="e.g., Conference Room A"
                                     />
                                 </div>
@@ -743,7 +750,7 @@ const Meetings = () => {
                                         type="button"
                                         onClick={() => setAttendeeTab('staff')}
                                         className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${attendeeTab === 'staff'
-                                            ? 'border-orange-600 text-orange-600'
+                                            ? `border-${primaryColor}-600 text-${primaryColor}-600`
                                             : 'border-transparent text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
@@ -753,7 +760,7 @@ const Meetings = () => {
                                         type="button"
                                         onClick={() => setAttendeeTab('clients')}
                                         className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${attendeeTab === 'clients'
-                                            ? 'border-orange-600 text-orange-600'
+                                            ? `border-${primaryColor}-600 text-${primaryColor}-600`
                                             : 'border-transparent text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
@@ -768,7 +775,7 @@ const Meetings = () => {
                                         placeholder={`Search ${attendeeTab}...`}
                                         value={attendeeSearch}
                                         onChange={e => setAttendeeSearch(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500`}
                                     />
                                 </div>
 
@@ -790,7 +797,7 @@ const Meetings = () => {
                                                     <div
                                                         key={user._id}
                                                         onClick={() => toggleAttendee(user.email)}
-                                                        className={`flex items-center gap-3 p-3 cursor-pointer transition-colors border-b last:border-b-0 ${isSelected ? 'bg-orange-50' : 'hover:bg-gray-50'}`}
+                                                        className={`flex items-center gap-3 p-3 cursor-pointer transition-colors border-b last:border-b-0 ${isSelected ? `bg-${primaryColor}-50` : 'hover:bg-gray-50'}`}
                                                     >
                                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${getRandomColor(user.name)}`}>
                                                             {getInitials(user.name)}
@@ -799,7 +806,7 @@ const Meetings = () => {
                                                             <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
                                                             <p className="text-xs text-gray-500 truncate">{user.email}</p>
                                                         </div>
-                                                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-orange-600 border-orange-600' : 'border-gray-300'}`}>
+                                                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? `bg-${primaryColor}-600 border-${primaryColor}-600` : 'border-gray-300'}`}>
                                                             {isSelected && <div className="w-2 h-2 bg-white rounded-sm" />}
                                                         </div>
                                                     </div>
@@ -823,7 +830,7 @@ const Meetings = () => {
                                                     <div
                                                         key={client._id}
                                                         onClick={() => toggleAttendee(client.email)}
-                                                        className={`flex items-center gap-3 p-3 cursor-pointer transition-colors border-b last:border-b-0 ${isSelected ? 'bg-orange-50' : 'hover:bg-gray-50'}`}
+                                                        className={`flex items-center gap-3 p-3 cursor-pointer transition-colors border-b last:border-b-0 ${isSelected ? `bg-${primaryColor}-50` : 'hover:bg-gray-50'}`}
                                                     >
                                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${getRandomColor(client.name)}`}>
                                                             {getInitials(client.name)}
@@ -832,7 +839,7 @@ const Meetings = () => {
                                                             <p className="text-sm font-medium text-gray-900 truncate">{client.name}</p>
                                                             <p className="text-xs text-gray-500 truncate">{client.email}</p>
                                                         </div>
-                                                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-orange-600 border-orange-600' : 'border-gray-300'}`}>
+                                                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? `bg-${primaryColor}-600 border-${primaryColor}-600` : 'border-gray-300'}`}>
                                                             {isSelected && <div className="w-2 h-2 bg-white rounded-sm" />}
                                                         </div>
                                                     </div>
@@ -852,7 +859,7 @@ const Meetings = () => {
                                     rows="3"
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 text-black rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    className={`w-full px-3 py-2 border border-gray-300 text-black rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-${primaryColor}-500`}
                                     placeholder="Meeting agenda or notes..."
                                 />
                             </div>
@@ -868,7 +875,7 @@ const Meetings = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-orange-400"
+                                    className={`flex-1 px-4 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700 disabled:bg-orange-400`}
                                 >
                                     {isSubmitting ? (isEditing ? 'Updating...' : 'Scheduling...') : (isEditing ? 'Update Meeting' : 'Schedule Meeting')}
                                 </button>
@@ -901,7 +908,7 @@ const Meetings = () => {
                                 <div>
                                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</label>
                                     <p className="text-gray-900 font-medium flex items-center gap-2 mt-1">
-                                        <Clock className="w-4 h-4 text-orange-600" />
+                                        <Clock className={`w-4 h-4 text-${primaryColor}-600`} />
                                         {formatTimeDisplay(selectedMeeting.time)}
                                     </p>
                                 </div>
@@ -1016,8 +1023,9 @@ const Meetings = () => {
                                     );
                                 })()}
 
-                            {/* Edit/Cancel Buttons for Creator */}
+                            {/* Edit/Cancel Buttons for Creator - Only show if created by staff (not client) */}
                             {selectedMeeting.status !== 'cancelled' && currentUser &&
+                                !selectedMeeting.clientCreator && // Don't show for client-created meetings
                                 (selectedMeeting.createdBy === currentUser._id || selectedMeeting.createdBy === currentUser.id) && (
                                     <>
                                         <button
@@ -1076,3 +1084,5 @@ const Meetings = () => {
 };
 
 export default Meetings;
+
+

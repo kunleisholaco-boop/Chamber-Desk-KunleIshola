@@ -230,7 +230,7 @@ const EditCaseForm = () => {
     }
 
     return (
-        <div>
+        <div className=" p-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
                 <button
@@ -500,91 +500,103 @@ const EditCaseForm = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Court / Legal Information</h3>
 
-                    <div className="mb-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                name="inCourt"
-                                checked={formData.inCourt}
-                                onChange={handleChange}
-                                className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                            />
-                            <span className="text-sm font-semibold text-gray-700">Is the matter already in court?</span>
-                        </label>
-                    </div>
-
-                    {formData.inCourt && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Court Name *</label>
-                                <input
-                                    type="text"
-                                    name="courtName"
-                                    value={formData.courtName}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
-                                    required={formData.inCourt}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Court Location *</label>
-                                <input
-                                    type="text"
-                                    name="courtLocation"
-                                    value={formData.courtLocation}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
-                                    required={formData.inCourt}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Case Number *</label>
-                                <input
-                                    type="text"
-                                    name="caseNumber"
-                                    value={formData.caseNumber}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
-                                    required={formData.inCourt}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Presiding Judge</label>
-                                <input
-                                    type="text"
-                                    name="presidingJudge"
-                                    value={formData.presidingJudge}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Next Court Date</label>
-                                <input
-                                    type="date"
-                                    name="nextCourtDate"
-                                    value={formData.nextCourtDate}
-                                    onChange={handleChange}
-                                    onClick={(e) => e.target.showPicker?.()}
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
-                                />
-                            </div>
-
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Previous Court Orders (if any)</label>
-                                <textarea
-                                    name="previousOrders"
-                                    value={formData.previousOrders}
-                                    onChange={handleChange}
-                                    rows="3"
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
-                                />
-                            </div>
+                    {userRole === 'HOC' && formData.inCourt ? (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
+                            <p className="text-purple-800 font-medium mb-2">Court details cannot be edited here</p>
+                            <p className="text-sm text-purple-600">
+                                Please use the <span className="font-semibold">"Update Court"</span> button in the Quick Actions section on the case details page to edit court information.
+                            </p>
                         </div>
+                    ) : (
+                        <>
+                            <div className="mb-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        name="inCourt"
+                                        checked={formData.inCourt}
+                                        onChange={handleChange}
+                                        className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                        disabled={userRole === 'HOC'}
+                                    />
+                                    <span className="text-sm font-semibold text-gray-700">Is the matter already in court?</span>
+                                </label>
+                            </div>
+
+                            {formData.inCourt && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Court Name *</label>
+                                        <input
+                                            type="text"
+                                            name="courtName"
+                                            value={formData.courtName}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                                            required={formData.inCourt}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Court Location *</label>
+                                        <input
+                                            type="text"
+                                            name="courtLocation"
+                                            value={formData.courtLocation}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                                            required={formData.inCourt}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Case Number *</label>
+                                        <input
+                                            type="text"
+                                            name="caseNumber"
+                                            value={formData.caseNumber}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                                            required={formData.inCourt}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Presiding Judge</label>
+                                        <input
+                                            type="text"
+                                            name="presidingJudge"
+                                            value={formData.presidingJudge}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Next Court Date</label>
+                                        <input
+                                            type="date"
+                                            name="nextCourtDate"
+                                            value={formData.nextCourtDate}
+                                            onChange={handleChange}
+                                            onClick={(e) => e.target.showPicker?.()}
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Previous Court Orders (if any)</label>
+                                        <textarea
+                                            name="previousOrders"
+                                            value={formData.previousOrders}
+                                            onChange={handleChange}
+                                            rows="3"
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 

@@ -14,6 +14,10 @@ const ComplaintDetails = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [selectedStatus, setSelectedStatus] = useState('');
 
+    // Get user role for navigation
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role;
+
     useEffect(() => {
         fetchComplaintDetails();
     }, [id]);
@@ -119,6 +123,16 @@ const ComplaintDetails = () => {
         });
     };
 
+    const getBasePath = () => {
+        return userRole === 'Admin' ? '/admin' : userRole === 'HOC' ? '/hoc' : '/dashboard';
+    };
+
+    const getPrimaryColor = () => {
+        return userRole === 'Admin' ? 'orange' : 'purple';
+    };
+
+    const primaryColor = getPrimaryColor();
+
     if (isLoading) {
         return (
             <div className="p-8">
@@ -134,7 +148,7 @@ const ComplaintDetails = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Complaint Not Found</h3>
                 <button
                     onClick={() => navigate(-1)}
-                    className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                    className={`mt-4 px-4 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700`}
                 >
                     Go Back
                 </button>
@@ -143,11 +157,11 @@ const ComplaintDetails = () => {
     }
 
     return (
-        <div>
+        <div className={userRole === 'HOC' ? 'p-6' : ''}>
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
                 <button
-                    onClick={() => navigate(`/admin/clients/${complaint.client._id}`)}
+                    onClick={() => navigate(`${getBasePath()}/clients/${complaint.client._id}`)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -164,9 +178,9 @@ const ComplaintDetails = () => {
             </div>
 
             {/* Client Info */}
-            <div className="bg-gradient-to-br from-orange-50 to-purple-50 rounded-xl shadow-sm border border-orange-200 p-4 mb-6">
+            <div className={`bg-gradient-to-br from-${primaryColor}-50 to-purple-50 rounded-xl shadow-sm border border-${primaryColor}-200 p-4 mb-6`}>
                 <div className="flex items-center gap-3">
-                    <UserIcon className="w-5 h-5 text-orange-600" />
+                    <UserIcon className={`w-5 h-5 text-${primaryColor}-600`} />
                     <div>
                         <p className="text-sm text-gray-600">Client</p>
                         <p className="font-semibold text-gray-900">{complaint.client.name}</p>
@@ -182,7 +196,7 @@ const ComplaintDetails = () => {
                     <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
-                        className="flex-1 px-4 text-black  py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className={`flex-1 px-4 text-black py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent`}
                     >
                         <option value="Pending">Pending</option>
                         <option value="In Progress">In Progress</option>
@@ -192,7 +206,7 @@ const ComplaintDetails = () => {
                     <button
                         onClick={handleStatusUpdate}
                         disabled={selectedStatus === complaint.status}
-                        className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className={`px-6 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
                     >
                         Update
                     </button>
@@ -208,7 +222,7 @@ const ComplaintDetails = () => {
                         <p className="text-sm text-blue-700">
                             <span className="font-medium">Related Case:</span>{' '}
                             <button
-                                onClick={() => navigate(`/admin/cases/${complaint.case._id}`)}
+                                onClick={() => navigate(`${getBasePath()}/cases/${complaint.case._id}`)}
                                 className="underline hover:text-blue-800"
                             >
                                 {complaint.case.caseTitle} ({complaint.case.caseType})
@@ -268,7 +282,7 @@ const ComplaintDetails = () => {
                             rows="4"
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
-                            className="w-full px-4 text-black  py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                            className={`w-full px-4 text-black py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent resize-none`}
                             placeholder="Type your reply here..."
                         />
                     </div>
@@ -282,7 +296,7 @@ const ComplaintDetails = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                        className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700 disabled:opacity-50 transition-colors`}
                     >
                         <Send className="w-4 h-4" />
                         {isSubmitting ? 'Posting...' : 'Post Reply'}

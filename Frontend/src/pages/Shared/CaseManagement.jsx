@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, FolderOpen, Clock, CheckCircle, XCircle, Award, AlertCircle, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
 import API_BASE_URL from '../../config/api';
 
-const Cases = () => {
+const CaseManagement = () => {
     const navigate = useNavigate();
     const [cases, setCases] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
+
+    // Get user role for conditional rendering
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role;
+    const userId = user.id;
 
     useEffect(() => {
         fetchCases();
@@ -18,9 +24,6 @@ const Cases = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const userId = user.id;
-
             const response = await fetch(`${API_BASE_URL}/api/cases`, {
                 headers: {
                     'x-auth-token': token
@@ -29,12 +32,18 @@ const Cases = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                // Filter cases assigned to this HOC OR created by this HOC
-                const hocCases = data.filter(caseItem =>
-                    (caseItem.assignedTo && caseItem.assignedTo._id === userId) ||
-                    (caseItem.createdBy && caseItem.createdBy._id === userId)
-                );
-                setCases(hocCases);
+
+                // HOC: Filter cases assigned to or created by this HOC
+                if (userRole === 'HOC') {
+                    const hocCases = data.filter(caseItem =>
+                        (caseItem.assignedTo && caseItem.assignedTo._id === userId) ||
+                        (caseItem.createdBy && caseItem.createdBy._id === userId)
+                    );
+                    setCases(hocCases);
+                } else {
+                    // Admin: Show all cases
+                    setCases(data);
+                }
             }
         } catch (err) {
             console.error('Error fetching cases:', err);
@@ -96,50 +105,63 @@ const Cases = () => {
         });
     };
 
+    const getBasePath = () => {
+        return userRole === 'Admin' ? '/admin' : userRole === 'HOC' ? '/hoc' : '/dashboard';
+    };
+
+    const getPrimaryColor = () => {
+        return userRole === 'Admin' ? 'orange' : 'purple';
+    };
+
+    const primaryColor = getPrimaryColor();
+
     return (
-        <div className="p-6">
+        <div className={userRole === 'HOC' ? 'p-6' : ''}>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">My Assigned Cases</h2>
-                <button
-                    onClick={() => navigate('/hoc/cases/add')}
-                    className="px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-                >
-                    <Plus className="w-5 h-5" />
-                    Add New Case
-                </button>
+                <h2 className="text-2xl font-bold text-gray-900">Case Management</h2>
+                {/* HOC-only: Add New Case Button */}
+                {userRole === 'HOC' && (
+                    <button
+                        onClick={() => navigate('/hoc/cases/add')}
+                        className="px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Add New Case
+                    </button>
+                )}
             </div>
 
             {/* Stats Counters */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 {/* Total Cases */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className={`bg-gradient-to-br ${userRole === 'Admin' ? 'from-blue-50 to-blue-100 border-blue-200' : 'from-white to-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
                     <div className="flex items-center justify-between mb-2">
-                        <FolderOpen className="w-5 h-5 text-purple-600" />
-                        <p className="text-2xl font-bold text-gray-900">{totalCases}</p>
+                        <FolderOpen className={`w-5 h-5 ${userRole === 'Admin' ? 'text-blue-600' : 'text-purple-600'}`} />
+                        <p className={`text-2xl font-bold ${userRole === 'Admin' ? 'text-blue-900' : 'text-gray-900'}`}>{totalCases}</p>
                     </div>
-                    <p className="text-xs font-medium text-gray-600">Total Cases</p>
+                    <p className={`text-xs font-medium ${userRole === 'Admin' ? 'text-blue-600' : 'text-gray-600'}`}>Total Cases</p>
                 </div>
 
                 {/* Open Cases */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className={`bg-gradient-to-br ${userRole === 'Admin' ? 'from-green-50 to-green-100 border-green-200' : 'from-white to-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
                     <div className="flex items-center justify-between mb-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <p className="text-2xl font-bold text-gray-900">{openCases}</p>
+                        <CheckCircle className={`w-5 h-5 text-green-600`} />
+                        <p className={`text-2xl font-bold ${userRole === 'Admin' ? 'text-green-900' : 'text-gray-900'}`}>{openCases}</p>
                     </div>
-                    <p className="text-xs font-medium text-gray-600">Open Cases</p>
+                    <p className={`text-xs font-medium ${userRole === 'Admin' ? 'text-green-600' : 'text-gray-600'}`}>Open Cases</p>
                 </div>
 
                 {/* Pending Cases */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className={`bg-gradient-to-br ${userRole === 'Admin' ? 'from-yellow-50 to-yellow-100 border-yellow-200' : 'from-white to-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
                     <div className="flex items-center justify-between mb-2">
-                        <Clock className="w-5 h-5 text-yellow-600" />
-                        <p className="text-2xl font-bold text-gray-900">{pendingCases}</p>
+                        <Clock className={`w-5 h-5 text-yellow-600`} />
+                        <p className={`text-2xl font-bold ${userRole === 'Admin' ? 'text-yellow-900' : 'text-gray-900'}`}>{pendingCases}</p>
                     </div>
-                    <p className="text-xs font-medium text-gray-600">Pending Cases</p>
+                    <p className={`text-xs font-medium ${userRole === 'Admin' ? 'text-yellow-600' : 'text-gray-600'}`}>Pending Cases</p>
                 </div>
 
                 {/* Closed Cases */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                         <AlertCircle className="w-5 h-5 text-gray-600" />
                         <p className="text-2xl font-bold text-gray-900">{closedCases}</p>
@@ -148,21 +170,21 @@ const Cases = () => {
                 </div>
 
                 {/* Won Cases */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className={`bg-gradient-to-br ${userRole === 'Admin' ? 'from-emerald-50 to-emerald-100 border-emerald-200' : 'from-white to-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
                     <div className="flex items-center justify-between mb-2">
-                        <Award className="w-5 h-5 text-emerald-600" />
-                        <p className="text-2xl font-bold text-gray-900">{wonCases}</p>
+                        <Award className={`w-5 h-5 text-emerald-600`} />
+                        <p className={`text-2xl font-bold ${userRole === 'Admin' ? 'text-emerald-900' : 'text-gray-900'}`}>{wonCases}</p>
                     </div>
-                    <p className="text-xs font-medium text-gray-600">Won Cases</p>
+                    <p className={`text-xs font-medium ${userRole === 'Admin' ? 'text-emerald-600' : 'text-gray-600'}`}>Won Cases</p>
                 </div>
 
                 {/* Lost Cases */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className={`bg-gradient-to-br ${userRole === 'Admin' ? 'from-red-50 to-red-100 border-red-200' : 'from-white to-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
                     <div className="flex items-center justify-between mb-2">
-                        <XCircle className="w-5 h-5 text-red-600" />
-                        <p className="text-2xl font-bold text-gray-900">{lostCases}</p>
+                        <XCircle className={`w-5 h-5 text-red-600`} />
+                        <p className={`text-2xl font-bold ${userRole === 'Admin' ? 'text-red-900' : 'text-gray-900'}`}>{lostCases}</p>
                     </div>
-                    <p className="text-xs font-medium text-gray-600">Lost Cases</p>
+                    <p className={`text-xs font-medium ${userRole === 'Admin' ? 'text-red-600' : 'text-gray-600'}`}>Lost Cases</p>
                 </div>
             </div>
 
@@ -177,7 +199,7 @@ const Cases = () => {
                             placeholder="Search by case title, client name, or case number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
+                            className={`w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent text-black`}
                         />
                     </div>
 
@@ -187,7 +209,7 @@ const Cases = () => {
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
-                            className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black appearance-none bg-white min-w-[200px]"
+                            className={`pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent text-black appearance-none bg-white min-w-[200px]`}
                         >
                             <option value="All">All Statuses</option>
                             <option value="Open">Open</option>
@@ -202,15 +224,17 @@ const Cases = () => {
 
             {/* Cases Grid */}
             {isLoading ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+                    <LoadingSpinner message="Loading cases..." />
                 </div>
             ) : filteredCases.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                     <p className="text-gray-500">
                         {searchQuery || filterStatus !== 'All'
                             ? 'No cases found matching your search criteria'
-                            : 'No cases assigned to you yet'}
+                            : userRole === 'HOC'
+                                ? 'No cases assigned to you yet'
+                                : 'No cases added yet'}
                     </p>
                 </div>
             ) : (
@@ -218,8 +242,8 @@ const Cases = () => {
                     {filteredCases.map((caseItem) => (
                         <div
                             key={caseItem._id}
-                            onClick={() => navigate(`/hoc/cases/${caseItem._id}`)}
-                            className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow cursor-pointer hover:border-purple-200"
+                            onClick={() => navigate(`${getBasePath()}/cases/${caseItem._id}`)}
+                            className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow cursor-pointer ${userRole === 'HOC' ? 'hover:border-purple-200' : ''}`}
                         >
                             {/* Header with Status and Type */}
                             <div className="flex justify-between items-start mb-4">
@@ -247,6 +271,15 @@ const Cases = () => {
                             <p className="text-sm text-gray-600 mb-2">
                                 <span className="font-medium">Client:</span> {caseItem.client?.name || 'N/A'}
                             </p>
+
+                            {/* Assigned HOC - Admin only */}
+                            {userRole === 'Admin' && (
+                                <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                                    <UserCircle className="w-4 h-4" />
+                                    <span className="font-medium">HOC:</span>
+                                    <span>{caseItem.assignedTo?.name || 'Not Assigned'}</span>
+                                </div>
+                            )}
 
                             {/* Assigned Lawyer */}
                             <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
@@ -278,4 +311,4 @@ const Cases = () => {
     );
 };
 
-export default Cases;
+export default CaseManagement;

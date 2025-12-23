@@ -538,7 +538,8 @@ router.delete('/:id/comments/:commentId', auth, async (req, res) => {
             return res.status(403).json({ msg: 'Not authorized to delete this comment' });
         }
 
-        comment.remove();
+        // Remove the comment using pull
+        task.comments.pull(req.params.commentId);
         await task.save();
 
         // Populate and return the updated task with comments
@@ -578,7 +579,8 @@ router.delete('/:id/comments/:commentId/replies/:replyId', auth, async (req, res
             return res.status(403).json({ msg: 'Not authorized to delete this reply' });
         }
 
-        reply.remove();
+        // Remove the reply using pull
+        comment.replies.pull(req.params.replyId);
         await task.save();
 
         // Populate and return the updated task with comments

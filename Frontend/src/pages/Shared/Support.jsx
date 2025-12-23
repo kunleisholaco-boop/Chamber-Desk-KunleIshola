@@ -4,12 +4,17 @@ import axios from 'axios';
 import DocumentSelectorDrawer from '../../components/DocumentSelectorDrawer';
 import SupportTicketDetail from '../../components/SupportTicketDetail';
 import Alert from '../../components/Alert';
+import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
 import API_BASE_URL from '../../config/api';
 
 const Support = () => {
+    // Get user role from localStorage for dynamic theming
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role || 'Admin';
+    const primaryColor = userRole === 'HOC' ? 'purple' : 'orange';
+
     const [activeView, setActiveView] = useState('menu');
     const [activeTicketTab, setActiveTicketTab] = useState('complaints'); // 'complaints' or 'requests'
-    const [activeManualTab, setActiveManualTab] = useState('clients'); // For User Manual tabs
     const [formData, setFormData] = useState({
         title: '',
         description: ''
@@ -20,8 +25,9 @@ const Support = () => {
     const [tickets, setTickets] = useState([]);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
-    const [userRole, setUserRole] = useState('');
+    const [userRoleState, setUserRoleState] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         fetchTickets();
@@ -29,6 +35,7 @@ const Support = () => {
     }, []);
 
     const fetchTickets = async () => {
+        setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(`${API_BASE_URL}/api/support`, {
@@ -37,12 +44,14 @@ const Support = () => {
             setTickets(res.data);
         } catch (err) {
             console.error('Error fetching tickets:', err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const fetchUserRole = () => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        setUserRole(user.role || '');
+        setUserRoleState(user.role || '');
     };
 
     const handleInputChange = (e) => {
@@ -141,16 +150,16 @@ const Support = () => {
     const featureRequests = tickets.filter(t => t.type === 'Feature Request');
 
     const renderMenu = () => (
-        <div className="max-w-4xl mx-auto">
+        <div className="">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Support Center</h1>
                 <p className="text-gray-600 mt-2">How can we help you today?</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <button
                     onClick={() => setActiveView('complaint')}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-orange-500 hover:shadow-lg transition-all text-left group"
+                    className={`bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-${primaryColor}-500 hover:shadow-lg transition-all text-left group`}
                 >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
@@ -165,7 +174,7 @@ const Support = () => {
 
                 <button
                     onClick={() => setActiveView('feature')}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-orange-500 hover:shadow-lg transition-all text-left group"
+                    className={`bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-${primaryColor}-500 hover:shadow-lg transition-all text-left group`}
                 >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
@@ -179,23 +188,8 @@ const Support = () => {
                 </button>
 
                 <button
-                    onClick={() => setActiveView('manual')}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-orange-500 hover:shadow-lg transition-all text-left group"
-                >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                            <Book className="w-8 h-8 text-blue-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900">User Manual</h2>
-                    </div>
-                    <p className="text-gray-600">
-                        Learn how to use the system with step-by-step guides
-                    </p>
-                </button>
-
-                <button
                     onClick={() => setActiveView('developers')}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-orange-500 hover:shadow-lg transition-all text-left group"
+                    className={`bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-${primaryColor}-500 hover:shadow-lg transition-all text-left group`}
                 >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors">
@@ -264,7 +258,7 @@ const Support = () => {
                                             <span className="text-xs text-gray-500">{formatDate(ticket.createdAt)}</span>
                                             <button
                                                 onClick={() => handleViewTicket(ticket._id)}
-                                                className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                                                className={`inline-flex items-center gap-1 px-3 py-1 text-xs bg-${primaryColor}-600 text-white rounded hover:bg-${primaryColor}-700 transition-colors`}
                                             >
                                                 <Eye size={14} />
                                                 View Details
@@ -297,7 +291,7 @@ const Support = () => {
                                             <span className="text-xs text-gray-500">{formatDate(ticket.createdAt)}</span>
                                             <button
                                                 onClick={() => handleViewTicket(ticket._id)}
-                                                className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                                                className={`inline-flex items-center gap-1 px-3 py-1 text-xs bg-${primaryColor}-600 text-white rounded hover:bg-${primaryColor}-700 transition-colors`}
                                             >
                                                 <Eye size={14} />
                                                 View Details
@@ -317,7 +311,7 @@ const Support = () => {
         <div className="max-w-3xl mx-auto">
             <button
                 onClick={() => setActiveView('menu')}
-                className="mb-6 text-orange-600 hover:text-orange-700 font-medium flex items-center gap-2"
+                className={`mb-6 text-${primaryColor}-600 hover:text-${primaryColor}-700 font-medium flex items-center gap-2`}
             >
                 ← Back to Menu
             </button>
@@ -354,7 +348,7 @@ const Support = () => {
                             value={formData.title}
                             onChange={handleInputChange}
                             placeholder={type === 'Complaint' ? 'Brief summary of the issue' : 'Brief description of the feature'}
-                            className="w-full px-4 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className={`w-full px-4 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500`}
                             required
                         />
                     </div>
@@ -371,7 +365,7 @@ const Support = () => {
                                 ? 'Provide detailed information about the problem...'
                                 : 'Explain how this feature would help...'}
                             rows={6}
-                            className="w-full px-4 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                            className={`w-full px-4 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-${primaryColor}-500 resize-none`}
                             required
                         />
                     </div>
@@ -382,7 +376,7 @@ const Support = () => {
                         </label>
                         <button
                             onClick={() => setShowDocumentDrawer(true)}
-                            className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 transition-colors text-gray-600 hover:text-orange-600"
+                            className={`flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-${primaryColor}-500 transition-colors text-gray-600 hover:text-${primaryColor}-600`}
                         >
                             <Paperclip size={18} />
                             Attach Files
@@ -408,7 +402,7 @@ const Support = () => {
                     <button
                         onClick={() => handleSubmit(type)}
                         disabled={submitting}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`w-full flex items-center justify-center gap-2 px-6 py-3 bg-${primaryColor}-600 text-white font-semibold rounded-lg hover:bg-${primaryColor}-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                         <Send size={18} />
                         {submitting ? 'Submitting...' : `Submit ${type}`}
@@ -422,6 +416,7 @@ const Support = () => {
         const manualSections = {
             clients: {
                 title: 'Client Management',
+                allowedRoles: ['Admin', 'HOC'], // Admin can add/edit/delete, HOC can view
                 icon: '👥',
                 color: 'blue',
                 content: [
@@ -433,6 +428,33 @@ const Support = () => {
                             'Select client type (Individual, Corporate, or Government Agency)',
                             'Fill in all required fields marked with *',
                             'Click "Add Client" to save'
+                        ]
+                    },
+                    {
+                        subtitle: 'Viewing Clients',
+                        steps: [
+                            'Navigate to Clients page from the sidebar',
+                            'View the total number of clients in your system',
+                            'Click on any client to view their full details',
+                            'Review client information, cases, and complaints'
+                        ]
+                    },
+                    {
+                        subtitle: 'Adding Cases from Client Details',
+                        steps: [
+                            'Open a client\'s details page',
+                            'Click "Add Case" button',
+                            'Fill in case information',
+                            'The case will be automatically linked to the client'
+                        ]
+                    },
+                    {
+                        subtitle: 'Viewing Client Complaints',
+                        steps: [
+                            'Open a client\'s details page',
+                            'Scroll to the "Complaints" section',
+                            'View all complaints filed by the client',
+                            'Click on any complaint to see details and responses'
                         ]
                     },
                     {
@@ -457,6 +479,7 @@ const Support = () => {
             },
             funds: {
                 title: 'Fund Requisitions',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can request funds
                 icon: '💰',
                 color: 'green',
                 content: [
@@ -468,19 +491,12 @@ const Support = () => {
                             'Attach any supporting documents if needed',
                             'Submit the request for manager approval'
                         ]
-                    },
-                    {
-                        subtitle: 'Pushing to Managers',
-                        steps: [
-                            'Navigate to Funds page to view all requisitions',
-                            'Pending requests are automatically visible to managers',
-                            'Track the status of your requests (Pending, Approved, Rejected)'
-                        ]
                     }
                 ]
             },
             documents: {
                 title: 'Document Management',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can manage documents
                 icon: '📄',
                 color: 'orange',
                 content: [
@@ -523,9 +539,29 @@ const Support = () => {
             },
             cases: {
                 title: 'Case Management',
+                allowedRoles: ['Admin', 'HOC'], // Only Admin and HOC can manage cases
                 icon: '⚖️',
                 color: 'purple',
                 content: [
+                    {
+                        subtitle: 'Adding a Case',
+                        steps: [
+                            'Click "Add Case" from Quick Actions or Cases page',
+                            'Fill in case title, case number, and case type',
+                            'Select the client for this case',
+                            'Add case description and other details',
+                            'Click "Add Case" to save'
+                        ]
+                    },
+                    {
+                        subtitle: 'Viewing Case Details',
+                        steps: [
+                            'Navigate to Cases page from the sidebar',
+                            'Click on any case to view full details',
+                            'Review case information, parties, court details, and documents',
+                            'See assigned lawyers and case status'
+                        ]
+                    },
                     {
                         subtitle: 'Editing Cases',
                         steps: [
@@ -545,21 +581,34 @@ const Support = () => {
                         ]
                     },
                     {
-                        subtitle: 'Sharing Client Link',
+                        subtitle: 'Assigning Lawyers to Cases',
                         steps: [
                             'Open the case details page',
-                            'Click "Share Client Link" button',
-                            'Copy the generated link',
+                            'Find the "Assigned Lawyers" section',
+                            'Click "Assign Lawyer" button',
+                            'Select lawyer(s) from the dropdown',
+                            'Save the assignment'
+                        ]
+                    },
+                    {
+                        subtitle: 'Sending Case Report to Client',
+                        steps: [
+                            'Open the case details page',
+                            'Click "Share Client Link" or "Send Report" button',
+                            'Copy the generated link or send report directly',
                             'Share the link with the client via email or other means'
                         ]
-                    }
-                ]
-            },
-            court: {
-                title: 'Court Details & Counsel',
-                icon: '🏛️',
-                color: 'indigo',
-                content: [
+                    },
+                    {
+                        subtitle: 'Updating Opposing Counsel',
+                        steps: [
+                            'Open the case details page',
+                            'Find the Opposing Counsel section under Case Details',
+                            'Click "Update Opposing Counsel" button',
+                            'Enter the new counsel\'s name',
+                            'Save - the system maintains a history of all opposing counsels'
+                        ]
+                    },
                     {
                         subtitle: 'Adding Court Details',
                         steps: [
@@ -572,7 +621,7 @@ const Support = () => {
                         ]
                     },
                     {
-                        subtitle: 'Updating Court Status',
+                        subtitle: 'Updating Court History',
                         steps: [
                             'From the case details page, locate Current Court Status',
                             'Click "Update Status" to add a new court date entry',
@@ -581,19 +630,60 @@ const Support = () => {
                         ]
                     },
                     {
-                        subtitle: 'Updating Opposing Counsel',
+                        subtitle: 'Adding Parties Involved',
                         steps: [
                             'Open the case details page',
-                            'Find the Opposing Counsel section under Case Details',
-                            'Click "Update Opposing Counsel" button',
-                            'Enter the new counsel\'s name',
-                            'Save - the system maintains a history of all opposing counsels'
+                            'Scroll to the "Parties Involved" section',
+                            'Click "Add Party" button',
+                            'Enter party name, role (Plaintiff, Defendant, etc.), and contact information',
+                            'Save the party details'
+                        ]
+                    },
+                    {
+                        subtitle: 'Managing Witnesses',
+                        steps: [
+                            'From the case details page, find the "Witnesses" section',
+                            'Click "Add Witness" button',
+                            'Fill in witness name, contact details, and role',
+                            'Add any notes about the witness testimony',
+                            'Save the witness information'
+                        ]
+                    },
+                    {
+                        subtitle: 'Adding Case Reports and Updates',
+                        steps: [
+                            'Open the case details page',
+                            'Scroll to the "Case Notes" or "Updates" section',
+                            'Click "Add Note" or "Add Update" button',
+                            'Enter your note or update in the text field',
+                            'Notes are timestamped and attributed to you automatically',
+                            'Click "Save" to add the note'
+                        ]
+                    },
+                    {
+                        subtitle: 'Viewing Case Document Library',
+                        steps: [
+                            'Open the case details page',
+                            'Scroll to the "Documents" or "Case Library" section',
+                            'View all documents linked to this case',
+                            'Click on any document to preview or download'
+                        ]
+                    },
+                    {
+                        subtitle: 'Uploading Documents to Case Library',
+                        steps: [
+                            'Open the case details page',
+                            'Go to the Documents section',
+                            'Click "Upload Document" or "Add Document" button',
+                            'Select file(s) from your computer',
+                            'Documents will be automatically linked to the case'
                         ]
                     }
                 ]
             },
             notifications: {
                 title: 'Managing Notifications',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can view notifications
                 icon: '🔔',
                 color: 'red',
                 content: [
@@ -627,6 +717,7 @@ const Support = () => {
             },
             search: {
                 title: 'Search & Filters',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can search
                 icon: '🔍',
                 color: 'teal',
                 content: [
@@ -660,71 +751,9 @@ const Support = () => {
                     }
                 ]
             },
-            parties: {
-                title: 'Parties & Witnesses',
-                icon: '👥',
-                color: 'cyan',
-                content: [
-                    {
-                        subtitle: 'Adding Parties Involved',
-                        steps: [
-                            'Open the case details page',
-                            'Scroll to the "Parties Involved" section',
-                            'Click "Add Party" button',
-                            'Enter party name, role (Plaintiff, Defendant, etc.), and contact information',
-                            'Save the party details'
-                        ]
-                    },
-                    {
-                        subtitle: 'Managing Witnesses',
-                        steps: [
-                            'From the case details page, find the "Witnesses" section',
-                            'Click "Add Witness" button',
-                            'Fill in witness name, contact details, and role',
-                            'Add any notes about the witness testimony',
-                            'Save the witness information'
-                        ]
-                    },
-                    {
-                        subtitle: 'Editing or Removing',
-                        steps: [
-                            'Click on any party or witness to view their details',
-                            'Click "Edit" to update their information',
-                            'Or click "Remove" to delete them from the case',
-                            'Confirm any deletions when prompted'
-                        ]
-                    }
-                ]
-            },
-            notes: {
-                title: 'Case Notes & Updates',
-                icon: '📝',
-                color: 'amber',
-                content: [
-                    {
-                        subtitle: 'Adding Case Notes',
-                        steps: [
-                            'Open the case details page',
-                            'Scroll to the "Case Notes" or "Updates" section',
-                            'Click "Add Note" or "Add Update" button',
-                            'Enter your note or update in the text field',
-                            'Notes are timestamped and attributed to you automatically',
-                            'Click "Save" to add the note'
-                        ]
-                    },
-                    {
-                        subtitle: 'Viewing Case History',
-                        steps: [
-                            'All case notes and updates appear in chronological order',
-                            'Each entry shows the date, time, and author',
-                            'Use this to track case progress and important events',
-                            'Scroll through the history to review past updates'
-                        ]
-                    },
-                ]
-            },
             meetings: {
                 title: 'Meeting Management',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can manage meetings
                 icon: '📅',
                 color: 'emerald',
                 content: [
@@ -774,6 +803,7 @@ const Support = () => {
             },
             broadcast: {
                 title: 'Broadcast Messages',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can view broadcasts
                 icon: '📢',
                 color: 'violet',
                 content: [
@@ -819,6 +849,7 @@ const Support = () => {
             },
             tasks: {
                 title: 'Task Management',
+                allowedRoles: ['Admin', 'HOC', 'Manager', 'Lawyer', 'Paralegal'], // All roles can manage tasks
                 icon: '✅',
                 color: 'sky',
                 content: [
@@ -926,7 +957,18 @@ const Support = () => {
             }
         };
 
-        const currentSection = manualSections[activeManualTab];
+        // Filter manual sections based on user role
+        const filteredSections = Object.entries(manualSections)
+            .filter(([key, section]) => section.allowedRoles && section.allowedRoles.includes(userRole))
+            .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
+
+        // If current tab is not in filtered sections, switch to first available section
+        const availableSectionKeys = Object.keys(filteredSections);
+        const currentTab = availableSectionKeys.includes(activeManualTab)
+            ? activeManualTab
+            : availableSectionKeys[0] || 'funds'; // Default to 'funds' if no sections available
+
+        const currentSection = filteredSections[currentTab];
         const colorClasses = {
             blue: 'border-blue-500 bg-blue-50 text-blue-700',
             green: 'border-green-500 bg-green-50 text-green-700',
@@ -947,21 +989,21 @@ const Support = () => {
             <div className="max-w-7xl mx-auto">
                 <button
                     onClick={() => setActiveView('menu')}
-                    className="mb-6 text-orange-600 hover:text-orange-700 font-medium flex items-center gap-2"
+                    className={`mb-6 text-${primaryColor}-600 hover:text-${primaryColor}-700 font-medium flex items-center gap-2`}
                 >
                     ← Back to Menu
                 </button>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    {/* Header - Changed to Orange Theme */}
-                    <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-6">
+                    {/* Header - Dynamic Theme Based on Role */}
+                    <div className={`bg-gradient-to-r from-${primaryColor}-600 to-${primaryColor}-700 p-6`}>
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
                                 <Book className="w-8 h-8 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-white">Admin User Manual</h2>
-                                <p className="text-orange-100">Step-by-step guides for using the system</p>
+                                <h2 className="text-2xl font-bold text-white">{userRole} User Manual</h2>
+                                <p className={`text-${primaryColor}-100`}>Step-by-step guides for using the system</p>
                             </div>
                         </div>
                     </div>
@@ -971,7 +1013,7 @@ const Support = () => {
                         {/* Left Side - Navigation Tabs */}
                         <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
                             <nav className="space-y-2">
-                                {Object.entries(manualSections).map(([key, section]) => (
+                                {Object.entries(filteredSections).map(([key, section]) => (
                                     <button
                                         key={key}
                                         onClick={() => setActiveManualTab(key)}
@@ -989,31 +1031,39 @@ const Support = () => {
 
                         {/* Right Side - Content */}
                         <div className="flex-1 p-8 overflow-y-auto max-h-[600px]">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                <span className="text-3xl">{currentSection.icon}</span>
-                                {currentSection.title}
-                            </h3>
+                            {currentSection ? (
+                                <>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                        <span className="text-3xl">{currentSection.icon}</span>
+                                        {currentSection.title}
+                                    </h3>
 
-                            <div className="space-y-6">
-                                {currentSection.content.map((item, index) => (
-                                    <div key={index} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                                        <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                            <CheckCircle2 className={`w-5 h-5 text-${currentSection.color}-600`} />
-                                            {item.subtitle}
-                                        </h4>
-                                        <ol className="space-y-3">
-                                            {item.steps.map((step, stepIndex) => (
-                                                <li key={stepIndex} className="flex gap-3">
-                                                    <span className={`flex-shrink-0 w-6 h-6 rounded-full bg-${currentSection.color}-100 text-${currentSection.color}-700 flex items-center justify-center text-xs font-bold`}>
-                                                        {stepIndex + 1}
-                                                    </span>
-                                                    <span className="text-gray-700 text-sm pt-0.5">{step}</span>
-                                                </li>
-                                            ))}
-                                        </ol>
+                                    <div className="space-y-6">
+                                        {currentSection.content.map((item, index) => (
+                                            <div key={index} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                                                <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                    <CheckCircle2 className={`w-5 h-5 text-${currentSection.color}-600`} />
+                                                    {item.subtitle}
+                                                </h4>
+                                                <ol className="space-y-3">
+                                                    {item.steps.map((step, stepIndex) => (
+                                                        <li key={stepIndex} className="flex gap-3">
+                                                            <span className={`flex-shrink-0 w-6 h-6 rounded-full bg-${currentSection.color}-100 text-${currentSection.color}-700 flex items-center justify-center text-xs font-bold`}>
+                                                                {stepIndex + 1}
+                                                            </span>
+                                                            <span className="text-gray-700 text-sm pt-0.5">{step}</span>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-gray-500">No manual sections available for your role.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1022,10 +1072,10 @@ const Support = () => {
     };
 
     const renderAboutDevelopers = () => (
-        <div className="max-w-4xl mx-auto">
+        <div>
             <button
                 onClick={() => setActiveView('menu')}
-                className="mb-6 text-orange-600 hover:text-orange-700 font-medium flex items-center gap-2"
+                className={`mb-6 text-${primaryColor}-600 hover:text-${primaryColor}-700 font-medium flex items-center gap-2`}
             >
                 ← Back to Menu
             </button>
@@ -1103,11 +1153,17 @@ const Support = () => {
 
     return (
         <div className="p-8">
-            {activeView === 'menu' && renderMenu()}
-            {activeView === 'complaint' && renderForm('Complaint')}
-            {activeView === 'feature' && renderForm('Feature Request')}
-            {activeView === 'manual' && renderUserManual()}
-            {activeView === 'developers' && renderAboutDevelopers()}
+            {isLoading ? (
+                <LoadingSpinner message="Loading support tickets..." color={primaryColor} />
+            ) : (
+                <>
+                    {activeView === 'menu' && renderMenu()}
+                    {activeView === 'complaint' && renderForm('Complaint')}
+                    {activeView === 'feature' && renderForm('Feature Request')}
+                    {activeView === 'manual' && renderUserManual()}
+                    {activeView === 'developers' && renderAboutDevelopers()}
+                </>
+            )}
 
             <DocumentSelectorDrawer
                 isOpen={showDocumentDrawer}
@@ -1128,3 +1184,4 @@ const Support = () => {
 };
 
 export default Support;
+

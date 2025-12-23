@@ -53,6 +53,15 @@ const ClientAuthSetup = ({ clientName, onSetupComplete }) => {
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Full Name *
                         </label>
+
+                        {clientName && (
+                            <div className="mb-3 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                                <p className="text-xs text-purple-600 font-medium mb-1">Your registered name:</p>
+                                <p className="text-lg font-bold text-purple-900">{clientName}</p>
+                                <p className="text-xs text-purple-600 mt-1">Please type this name exactly as shown above</p>
+                            </div>
+                        )}
+
                         <div className="relative">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
@@ -65,9 +74,11 @@ const ClientAuthSetup = ({ clientName, onSetupComplete }) => {
                                 disabled={isLoading}
                             />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                            Enter your name exactly as it appears in the case
-                        </p>
+                        {!clientName && (
+                            <p className="text-xs text-gray-500 mt-1">
+                                Enter your name exactly as it appears in the case
+                            </p>
+                        )}
                     </div>
 
                     <div>

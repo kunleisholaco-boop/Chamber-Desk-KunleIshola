@@ -4,7 +4,7 @@ import { LayoutDashboard, Briefcase, Calendar, Lock, Scale, MessageSquare, Bell 
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 
-const ClientPortalSidebar = ({ shareToken, onLogout }) => {
+const ClientPortalSidebar = ({ shareToken, onLogout, onNavigate }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [unreadCount, setUnreadCount] = useState(0);
@@ -25,13 +25,18 @@ const ClientPortalSidebar = ({ shareToken, onLogout }) => {
         }
     };
 
+    const handleNavigation = (path) => {
+        navigate(path);
+        if (onNavigate) onNavigate();
+    };
+
     const isActive = (path) => {
         return location.pathname === path;
     };
 
     const NavItem = ({ icon: Icon, label, path, badge }) => (
         <button
-            onClick={() => navigate(path)}
+            onClick={() => handleNavigation(path)}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full ${isActive(path)
                 ? 'bg-gray-800 text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-800'

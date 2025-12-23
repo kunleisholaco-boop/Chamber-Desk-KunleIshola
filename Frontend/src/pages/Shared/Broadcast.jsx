@@ -4,6 +4,12 @@ import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
 import API_BASE_URL from '../../config/api';
 
 const Broadcast = () => {
+    // Get user role from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role || 'Admin';
+    const rolePrefix = userRole === 'HOC' ? '/hoc' : '/admin';
+    const primaryColor = userRole === 'HOC' ? 'purple' : 'orange';
+
     const [broadcasts, setBroadcasts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedBroadcast, setSelectedBroadcast] = useState(null);
@@ -41,7 +47,7 @@ const Broadcast = () => {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Radio className="w-6 h-6 text-orange-600" />
+                    <Radio className={`w-6 h-6 text-${primaryColor}-600`} />
                     Broadcast Messages
                 </h1>
                 <p className="text-gray-600 mt-1">View important announcements and updates from management</p>
@@ -62,7 +68,7 @@ const Broadcast = () => {
                             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer group"
                         >
                             <div className="flex justify-between items-start mb-3">
-                                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+                                <h3 className={`text-lg font-semibold text-gray-900 group-hover:text-${primaryColor}-600 transition-colors`}>
                                     {broadcast.title}
                                 </h3>
                                 <span className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full">

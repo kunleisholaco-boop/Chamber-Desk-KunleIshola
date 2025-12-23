@@ -6,35 +6,30 @@ import SuperadminDashboard from './pages/Superadmin/SuperadminDashboard';
 import ManagerDashboard from './pages/Managers/ManagerDashboard';
 import HOCLayout from './pages/HOC/HOCLayout';
 import HOCHome from './pages/HOC/Home';
-import HOCClients from './pages/HOC/Clients';
-import HOCClientDetails from './pages/HOC/ClientDetails';
-import HOCCases from './pages/HOC/Cases';
 import HOCCaseDetails from './pages/HOC/CaseDetails';
 import HOCFunds from './pages/HOC/Funds';
-import HOCDocuments from './pages/HOC/Documents'; // HOC Documents Page
 import HOCNotifications from './pages/HOC/Notifications';
-import HOCSupport from './pages/HOC/Support';
 import HOCReportThread from './pages/HOC/HOCReportThread';
 import LawyerDashboard from './pages/Lawyers/LawyerDashboard';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminHome from './pages/Admin/AdminHome';
-import ClientManagement from './pages/Admin/ClientManagement';
+import ClientManagement from './pages/Shared/ClientManagement'; // Shared component
 import AddClientForm from './components/AdminOfficer/AddClientForm';
-import ClientDetails from './pages/Admin/ClientDetails';
+import ClientDetails from './pages/Shared/ClientDetails'; // Shared component
 import EditClientForm from './components/AdminOfficer/EditClientForm';
 import AddCaseForm from './components/AdminOfficer/AddCaseForm';
 import EditCaseForm from './components/AdminOfficer/EditCaseForm';
+import CaseManagement from './pages/Shared/CaseManagement'; // Shared component
 import CaseDetails from './pages/Admin/CaseDetails';
-import CasesPage from './pages/Admin/CasesPage';
 import FundRequisitionList from './pages/Admin/FundRequisitionList';
 import Notifications from './pages/Admin/Notifications';
-import Documents from './pages/Admin/Documents';
-import Support from './pages/Admin/Support';
-import Meetings from './pages/Admin/Meetings';
-import Broadcast from './pages/Admin/Broadcast';
-import Tasks from './pages/Admin/Tasks';
+import Documents from './pages/Shared/Documents'; // Shared component
+import Support from './pages/Shared/Support'; // Shared component
+import Meetings from './pages/Shared/Meetings'; // Shared component
+import Broadcast from './pages/Shared/Broadcast'; // Shared component
+import Tasks from './pages/Shared/Tasks'; // Shared component
 import TaskDetails from './pages/Admin/TaskDetails';
-import ComplaintDetails from './pages/Admin/ComplaintDetails';
+import ComplaintDetails from './pages/Shared/ComplaintDetails'; // Shared component
 import OAuthCallback from './pages/OAuthCallback';
 import ParalegalDashboard from './pages/Paralegals/ParalegalDashboard';
 import ClientPortalLayout from './pages/Client/ClientPortalLayout';
@@ -76,18 +71,23 @@ function App() {
         {/* HOC Routes */}
         <Route path="/hoc" element={<HOCLayout />}>
           <Route index element={<HOCHome />} />
-          <Route path="clients" element={<HOCClients />} />
-          <Route path="clients/:id" element={<HOCClientDetails />} />
-          <Route path="cases" element={<HOCCases />} />
+          <Route path="clients" element={<ClientManagement />} />
+          <Route path="clients/:id" element={<ClientDetails />} />
+          <Route path="cases" element={<CaseManagement />} />
           <Route path="cases/add" element={<AddCaseForm />} />
           <Route path="cases/edit/:id" element={<EditCaseForm />} />
           <Route path="cases/:id" element={<HOCCaseDetails />} />
           <Route path="cases/:caseId/report/:reportId" element={<HOCReportThread />} />
           <Route path="funds" element={<HOCFunds />} />
           <Route path="funds/request" element={<FundRequisitionForm />} />
-          <Route path="documents" element={<HOCDocuments />} />
+          <Route path="documents" element={<Documents />} />
           <Route path="notifications" element={<HOCNotifications />} />
-          <Route path="support" element={<HOCSupport />} />
+          <Route path="support" element={<Support />} />
+          <Route path="tasks" element={<Tasks />} />
+          <Route path="tasks/:id" element={<TaskDetails />} />
+          <Route path="meetings" element={<Meetings />} />
+          <Route path="broadcast" element={<Broadcast />} />
+          <Route path="complaints/:id" element={<ComplaintDetails />} />
         </Route>
 
         <Route path="/lawyer/*" element={<LawyerDashboard />} />
@@ -99,7 +99,7 @@ function App() {
           <Route path="clients/add" element={<AddClientForm />} />
           <Route path="clients/edit/:id" element={<EditClientForm />} />
           <Route path="clients/:id" element={<ClientDetails />} />
-          <Route path="cases" element={<CasesPage />} />
+          <Route path="cases" element={<CaseManagement />} />
           <Route path="cases/add" element={<AddCaseForm />} />
           <Route path="cases/edit/:id" element={<EditCaseForm />} />
           <Route path="cases/:id" element={<CaseDetails />} />

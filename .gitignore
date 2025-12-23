@@ -43,3 +43,6 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
+
+# Agent documentation (local only)
+.agent/

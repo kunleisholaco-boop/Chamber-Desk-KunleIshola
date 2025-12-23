@@ -183,7 +183,7 @@ const Notifications = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative">
                         <Calendar className="absolute text-black left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                         <input
@@ -191,7 +191,7 @@ const Notifications = () => {
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                            className="pl-9 text-black pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                            className="pl-9 text-black pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-auto"
                         />
                     </div>
                     <button
@@ -205,7 +205,7 @@ const Notifications = () => {
                     </button>
                     <button
                         onClick={markAllAsRead}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap"
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap text-center sm:text-left"
                     >
                         Mark all as read
                     </button>

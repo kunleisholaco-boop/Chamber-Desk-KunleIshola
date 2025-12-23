@@ -9,7 +9,9 @@ import axios from 'axios';
 import LoadingSpinner from '../../components/AdminOfficer/LoadingSpinner';
 import CaseReports from '../../components/AdminOfficer/CaseReports';
 import DocumentSelectorDrawer from '../../components/DocumentSelectorDrawer';
-import ShareCaseLinkModal from '../../components/AdminOfficer/ShareCaseLinkModal';
+import CourtDetailsModal from '../../components/AdminOfficer/CourtDetailsModal';
+import UpdateOpposingCounselModal from '../../components/AdminOfficer/UpdateOpposingCounselModal';
+import OpposingCounselSection from '../../components/AdminOfficer/OpposingCounselSection';
 import ClientReportModal from '../../components/AdminOfficer/ClientReportModal';
 import API_BASE_URL from '../../config/api';
 
@@ -29,8 +31,11 @@ const CaseDetails = () => {
     const [selectedLawyers, setSelectedLawyers] = useState([]);
     const [lawyerUsers, setLawyerUsers] = useState([]);
     const [showLawyerModal, setShowLawyerModal] = useState(false);
-    const [showShareLinkModal, setShowShareLinkModal] = useState(false);
     const [showClientReportModal, setShowClientReportModal] = useState(false);
+    const [showCourtModal, setShowCourtModal] = useState(false);
+    const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+    const [showCounselModal, setShowCounselModal] = useState(false);
+    const [documentToRemove, setDocumentToRemove] = useState(null);
 
     useEffect(() => {
         fetchCaseDetails();
@@ -266,6 +271,65 @@ const CaseDetails = () => {
         }
     };
 
+    const handleUpdateCounsel = async (name) => {
+        setIsUpdating(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/opposing-counsel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ opposingCounsel: name })
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'Opposing counsel updated successfully' });
+                setShowCounselModal(false);
+                fetchCaseDetails();
+            } else {
+                const data = await response.json();
+                setMessage({ type: 'error', text: data.msg || 'Failed to update opposing counsel' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error updating opposing counsel' });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleSaveCourtDetails = async (courtData) => {
+        try {
+            const token = localStorage.getItem('token');
+            const updatedData = {
+                inCourt: true,
+                courtInfo: courtData,
+                courtInfoAction: modalMode // 'add' or 'edit'
+            };
+
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/court-details`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: modalMode === 'add' ? 'New court update added successfully' : 'Court details updated successfully' });
+                fetchCaseDetails();
+                setShowCourtModal(false);
+            } else {
+                throw new Error('Failed to update court details');
+            }
+        } catch (err) {
+            console.error('Error updating court details:', err);
+            setMessage({ type: 'error', text: 'Failed to update court details' });
+        }
+    };
+
     const getFileIcon = (type) => {
         if (!type) return <File className="w-6 h-6 text-gray-500" />;
         const t = type.toLowerCase();
@@ -322,15 +386,7 @@ const CaseDetails = () => {
             {/* Quick Actions */}
             <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <button
-                        onClick={() => setShowShareLinkModal(true)}
-                        className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex flex-col items-center gap-3"
-                    >
-                        <div className="p-3 bg-white/20 rounded-lg"><Users className="w-6 h-6" /></div>
-                        <span className="font-semibold text-sm text-center">Share Link</span>
-                    </button>
-
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                     <button
                         onClick={() => setShowClientReportModal(true)}
                         className="bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex flex-col items-center gap-3"
@@ -361,6 +417,25 @@ const CaseDetails = () => {
                     >
                         <div className="p-3 bg-white/20 rounded-lg"><RefreshCw className="w-6 h-6" /></div>
                         <span className="font-semibold text-sm text-center">Update Status</span>
+                    </button>
+
+                    <button
+                        onClick={() => setShowCounselModal(true)}
+                        className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex flex-col items-center gap-3"
+                    >
+                        <div className="p-3 bg-white/20 rounded-lg"><Scale className="w-6 h-6" /></div>
+                        <span className="font-semibold text-sm text-center">Update Counsel</span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setModalMode('add');
+                            setShowCourtModal(true);
+                        }}
+                        className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all flex flex-col items-center gap-3"
+                    >
+                        <div className="p-3 bg-white/20 rounded-lg"><Building className="w-6 h-6" /></div>
+                        <span className="font-semibold text-sm text-center">Update Court</span>
                     </button>
                 </div>
             </div>
@@ -507,14 +582,11 @@ const CaseDetails = () => {
                         <p className="text-sm text-gray-900">{caseData.clientObjective || 'N/A'}</p>
                     </div>
 
-                    <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-2">Opposing Counsel (if known)</p>
-                        <p className="text-sm text-gray-900">
-                            {caseData.opposingCounselHistory && caseData.opposingCounselHistory.length > 0
-                                ? caseData.opposingCounselHistory[caseData.opposingCounselHistory.length - 1].name
-                                : 'N/A'}
-                        </p>
-                    </div>
+                    <OpposingCounselSection
+                        opposingCounselHistory={caseData.opposingCounselHistory}
+                        onUpdateClick={() => setShowCounselModal(true)}
+                        formatDate={formatDate}
+                    />
                 </div>
             </div>
 
@@ -955,11 +1027,21 @@ const CaseDetails = () => {
                 existingDocumentIds={caseDocuments.map(d => d._id)}
             />
 
-            {/* Share Link Modal */}
-            <ShareCaseLinkModal
-                isOpen={showShareLinkModal}
-                onClose={() => setShowShareLinkModal(false)}
-                shareToken={caseData?.shareToken}
+            {/* Court Details Modal */}
+            <CourtDetailsModal
+                isOpen={showCourtModal}
+                onClose={() => setShowCourtModal(false)}
+                onSave={handleSaveCourtDetails}
+                mode={modalMode}
+                initialData={caseData?.courtInfo?.[caseData.courtInfo.length - 1]}
+            />
+
+            {/* Update Opposing Counsel Modal */}
+            <UpdateOpposingCounselModal
+                isOpen={showCounselModal}
+                onClose={() => setShowCounselModal(false)}
+                onUpdate={handleUpdateCounsel}
+                currentCounsel={caseData?.opposingCounselHistory?.[caseData.opposingCounselHistory.length - 1]?.name || ''}
             />
 
             {/* Client Report Modal */}

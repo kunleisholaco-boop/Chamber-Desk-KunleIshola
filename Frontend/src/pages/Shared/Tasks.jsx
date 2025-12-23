@@ -8,6 +8,13 @@ import API_BASE_URL from '../../config/api';
 
 const Tasks = () => {
     const navigate = useNavigate();
+
+    // Get user role from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role || 'Admin';
+    const rolePrefix = userRole === 'HOC' ? '/hoc' : '/admin';
+    const primaryColor = userRole === 'HOC' ? 'purple' : 'orange';
+
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('my_tasks'); // 'my_tasks', 'assigned', 'joint'
@@ -15,9 +22,11 @@ const Tasks = () => {
     const [initialStatus, setInitialStatus] = useState('To-Do');
     const [draggedTask, setDraggedTask] = useState(null);
     const [dragOverColumn, setDragOverColumn] = useState(null);
+    const [taskCounts, setTaskCounts] = useState({ my_tasks: 0, assigned: 0, joint: 0 });
 
     useEffect(() => {
         fetchTasks();
+        fetchAllTaskCounts(); // Fetch counts for all tabs
     }, [activeTab]);
 
     const fetchTasks = async () => {
@@ -35,6 +44,31 @@ const Tasks = () => {
             console.error('Error fetching tasks:', err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchAllTaskCounts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const tabs = ['my_tasks', 'assigned', 'joint'];
+
+            const counts = {};
+            await Promise.all(
+                tabs.map(async (tab) => {
+                    const response = await fetch(`${API_BASE_URL}/api/tasks?type=${tab}`, {
+                        headers: { 'x-auth-token': token }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        counts[tab] = data.length;
+                    } else {
+                        counts[tab] = 0;
+                    }
+                })
+            );
+            setTaskCounts(counts);
+        } catch (err) {
+            console.error('Error fetching task counts:', err);
         }
     };
 
@@ -101,7 +135,7 @@ const Tasks = () => {
     };
 
     const handleTaskClick = (taskId) => {
-        navigate(`/admin/tasks/${taskId}`);
+        navigate(`${rolePrefix}/tasks/${taskId}`);
     };
 
     // Kanban Helper Functions
@@ -157,7 +191,7 @@ const Tasks = () => {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <CheckSquare className="w-6 h-6 text-orange-600" />
+                        <CheckSquare className={`w-6 h-6 text-${primaryColor}-600`} />
                         Task Management
                     </h1>
                     <p className="text-gray-600 mt-1">Track and manage your tasks and assignments</p>
@@ -167,7 +201,7 @@ const Tasks = () => {
                         setInitialStatus('To-Do');
                         setShowModal(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                    className={`flex items-center gap-2 px-4 py-2 bg-${primaryColor}-600 text-white rounded-lg hover:bg-${primaryColor}-700 transition-colors`}
                 >
                     <Plus className="w-5 h-5" />
                     Add Task
@@ -180,18 +214,26 @@ const Tasks = () => {
                     { id: 'my_tasks', label: 'My Tasks' },
                     { id: 'assigned', label: 'Assigned to Me' },
                     { id: 'joint', label: 'Joint Tasks' }
-                ].map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
-                            ? 'border-orange-600 text-orange-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+                ].map(tab => {
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
+                                ? `border-${primaryColor}-600 text-${primaryColor}-600`
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            {tab.label}
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${activeTab === tab.id
+                                ? `bg-${primaryColor}-100 text-${primaryColor}-700`
+                                : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                {taskCounts[tab.id] || 0}
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Kanban Board */}
@@ -219,7 +261,7 @@ const Tasks = () => {
 
                             {/* Column Content */}
                             <div
-                                className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-colors ${dragOverColumn === column.id ? 'bg-orange-50 border-2 border-dashed border-orange-400' : ''
+                                className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-colors ${dragOverColumn === column.id ? `bg-${primaryColor}-50 border-2 border-dashed border-${primaryColor}-400` : ''
                                     }`}
                                 onDragOver={handleDragOver}
                                 onDragEnter={() => handleDragEnter(column.id)}
@@ -268,7 +310,7 @@ const Tasks = () => {
 
                                             {/* Assignee Avatars */}
                                             <div className="flex -space-x-2">
-                                                {task.assignedTo && (
+                                                {task.assignedTo && task.assignedTo.name && (
                                                     <div
                                                         className={`w-6 h-6 rounded-full ${getAvatarColor(0)} border-2 border-white flex items-center justify-center text-[10px] font-bold text-white`}
                                                         title={task.assignedTo.name}
@@ -276,7 +318,7 @@ const Tasks = () => {
                                                         {getInitials(task.assignedTo.name)}
                                                     </div>
                                                 )}
-                                                {task.collaborators && task.collaborators.slice(0, 2).map((collab, idx) => (
+                                                {task.collaborators && task.collaborators.length > 0 && task.collaborators.slice(0, 2).map((collab, idx) => (
                                                     <div
                                                         key={idx}
                                                         className={`w-6 h-6 rounded-full ${getAvatarColor(idx + 1)} border-2 border-white flex items-center justify-center text-[10px] font-bold text-white`}

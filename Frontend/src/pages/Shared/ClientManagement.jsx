@@ -12,6 +12,10 @@ const ClientManagement = () => {
     const [filterType, setFilterType] = useState('All');
     const [filterStatus, setFilterStatus] = useState('All');
 
+    // Get user role for conditional rendering
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = user.role; // 'Admin', 'HOC', 'Manager', etc.
+
     useEffect(() => {
         fetchClients();
     }, []);
@@ -81,7 +85,7 @@ const ClientManagement = () => {
 
     // Get color for avatar circle
     const getAvatarColor = (name) => {
-        const colors = [
+        const colors = userRole === 'Admin' ? [
             'bg-orange-500',
             'bg-blue-500',
             'bg-green-500',
@@ -90,34 +94,56 @@ const ClientManagement = () => {
             'bg-indigo-500',
             'bg-red-500',
             'bg-yellow-500'
+        ] : [
+            'bg-purple-500',
+            'bg-blue-500',
+            'bg-green-500',
+            'bg-indigo-500',
+            'bg-pink-500',
+            'bg-violet-500',
+            'bg-red-500',
+            'bg-yellow-500'
         ];
         const index = name ? name.charCodeAt(0) % colors.length : 0;
         return colors[index];
     };
 
+    const getBasePath = () => {
+        return userRole === 'Admin' ? '/admin' : userRole === 'HOC' ? '/hoc' : '/dashboard';
+    };
+
+    const getPrimaryColor = () => {
+        return userRole === 'Admin' ? 'orange' : 'purple';
+    };
+
+    const primaryColor = getPrimaryColor();
+
     return (
-        <div>
+        <div className={userRole === 'HOC' ? 'p-6' : ''}>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Client Management</h2>
-                <button
-                    onClick={() => navigate('/admin/clients/add')}
-                    className="px-6 py-2.5 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
-                >
-                    <UserPlus className="w-5 h-5" />
-                    Add New Client
-                </button>
+                {/* Admin-only: Add New Client Button */}
+                {userRole === 'Admin' && (
+                    <button
+                        onClick={() => navigate('/admin/clients/add')}
+                        className="px-6 py-2.5 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+                    >
+                        <UserPlus className="w-5 h-5" />
+                        Add New Client
+                    </button>
+                )}
             </div>
 
             {/* Stats Counters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 {/* Total Clients */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                <div className={`bg-gradient-to-br from-${primaryColor}-50 to-${primaryColor}-100 rounded-xl p-6 border border-${primaryColor}-200`}>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-blue-600 mb-1">Total Clients</p>
-                            <p className="text-3xl font-bold text-blue-900">{totalClients}</p>
+                            <p className={`text-sm font-medium text-${primaryColor}-600 mb-1`}>Total Clients</p>
+                            <p className={`text-3xl font-bold text-${primaryColor}-900`}>{totalClients}</p>
                         </div>
-                        <div className="p-3 bg-blue-500 rounded-lg">
+                        <div className={`p-3 bg-${primaryColor}-500 rounded-lg`}>
                             <Users className="w-6 h-6 text-white" />
                         </div>
                     </div>
@@ -161,7 +187,7 @@ const ClientManagement = () => {
                             placeholder="Search by name, email, or phone..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black"
+                            className={`w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent text-black`}
                         />
                     </div>
 
@@ -171,7 +197,7 @@ const ClientManagement = () => {
                         <select
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value)}
-                            className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black appearance-none bg-white min-w-[200px]"
+                            className={`pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent text-black appearance-none bg-white min-w-[200px]`}
                         >
                             <option value="All">All Client Types</option>
                             <option value="Individual">Individual</option>
@@ -186,7 +212,7 @@ const ClientManagement = () => {
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
-                            className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black appearance-none bg-white min-w-[200px]"
+                            className={`pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${primaryColor}-500 focus:border-transparent text-black appearance-none bg-white min-w-[200px]`}
                         >
                             <option value="All">All Statuses</option>
                             <option value="Active">Active</option>
@@ -214,7 +240,7 @@ const ClientManagement = () => {
                     {filteredClients.map((client) => (
                         <div
                             key={client._id}
-                            onClick={() => navigate(`/admin/clients/${client._id}`)}
+                            onClick={() => navigate(`${getBasePath()}/clients/${client._id}`)}
                             className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow cursor-pointer relative"
                         >
                             {/* Status Badge - Top Left */}
