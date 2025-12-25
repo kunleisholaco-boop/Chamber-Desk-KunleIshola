@@ -184,6 +184,9 @@ const CaseDetails = () => {
 
         try {
             const token = localStorage.getItem('token');
+            const currentCount = caseData.assignedParalegals?.length || 0;
+            const newCount = selectedParalegals.length;
+
             const response = await fetch(`${API_BASE_URL}/api/cases/${id}/assign-paralegals`, {
                 method: 'POST',
                 headers: {
@@ -194,17 +197,22 @@ const CaseDetails = () => {
             });
 
             if (response.ok) {
-                setMessage({ type: 'success', text: 'Paralegals assigned successfully!' });
+                let successMessage = 'Paralegals updated successfully!';
+                if (newCount === 0) successMessage = 'Paralegals removed successfully!';
+                else if (newCount > currentCount) successMessage = 'Paralegals assigned successfully!';
+                else if (newCount < currentCount) successMessage = 'Paralegals removed successfully!';
+
+                setMessage({ type: 'success', text: successMessage });
                 setShowParalegalModal(false);
                 setTimeout(() => {
                     fetchCaseDetails();
                 }, 500);
             } else {
                 const data = await response.json();
-                setMessage({ type: 'error', text: data.msg || 'Failed to assign paralegals' });
+                setMessage({ type: 'error', text: data.msg || 'Failed to update paralegals' });
             }
         } catch (err) {
-            setMessage({ type: 'error', text: 'Error assigning paralegals' });
+            setMessage({ type: 'error', text: 'Error updating paralegals' });
         } finally {
             setIsUpdating(false);
         }
@@ -219,16 +227,14 @@ const CaseDetails = () => {
     };
 
     const handleAssignLawyers = async () => {
-        if (selectedLawyers.length === 0) {
-            setMessage({ type: 'error', text: 'Please select at least one lawyer' });
-            return;
-        }
-
         setIsUpdating(true);
         setMessage({ type: '', text: '' });
 
         try {
             const token = localStorage.getItem('token');
+            const currentCount = caseData.assignedLawyers?.length || 0;
+            const newCount = selectedLawyers.length;
+
             const response = await fetch(`${API_BASE_URL}/api/cases/${id}/assign-lawyers`, {
                 method: 'POST',
                 headers: {
@@ -239,18 +245,22 @@ const CaseDetails = () => {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setMessage({ type: 'success', text: 'Lawyers assigned successfully!' });
+                let successMessage = 'Lawyers updated successfully!';
+                if (newCount === 0) successMessage = 'Lawyers removed successfully!';
+                else if (newCount > currentCount) successMessage = 'Lawyers assigned successfully!';
+                else if (newCount < currentCount) successMessage = 'Lawyers removed successfully!';
+
+                setMessage({ type: 'success', text: successMessage });
                 setShowLawyerModal(false);
                 setTimeout(() => {
                     fetchCaseDetails();
                 }, 500);
             } else {
                 const data = await response.json();
-                setMessage({ type: 'error', text: data.msg || 'Failed to assign lawyers' });
+                setMessage({ type: 'error', text: data.msg || 'Failed to update lawyers' });
             }
         } catch (err) {
-            setMessage({ type: 'error', text: 'Error assigning lawyers' });
+            setMessage({ type: 'error', text: 'Error updating lawyers' });
         } finally {
             setIsUpdating(false);
         }
@@ -290,6 +300,72 @@ const CaseDetails = () => {
                 ? prev.filter(id => id !== lawyerId)
                 : [...prev, lawyerId]
         );
+    };
+
+    const handleRemoveLawyer = async (lawyerId) => {
+        setIsUpdating(true);
+        setMessage({ type: '', text: '' });
+
+        try {
+            const token = localStorage.getItem('token');
+            const updatedLawyers = caseData.assignedLawyers
+                .filter(l => l._id !== lawyerId)
+                .map(l => l._id);
+
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/assign-lawyers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ lawyerIds: updatedLawyers })
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'Lawyer removed successfully!' });
+                fetchCaseDetails();
+            } else {
+                const data = await response.json();
+                setMessage({ type: 'error', text: data.msg || 'Failed to remove lawyer' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error removing lawyer' });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleRemoveParalegal = async (paralegalId) => {
+        setIsUpdating(true);
+        setMessage({ type: '', text: '' });
+
+        try {
+            const token = localStorage.getItem('token');
+            const updatedParalegals = caseData.assignedParalegals
+                .filter(p => p._id !== paralegalId)
+                .map(p => p._id);
+
+            const response = await fetch(`${API_BASE_URL}/api/cases/${id}/assign-paralegals`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ paralegalIds: updatedParalegals })
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'Paralegal removed successfully!' });
+                fetchCaseDetails();
+            } else {
+                const data = await response.json();
+                setMessage({ type: 'error', text: data.msg || 'Failed to remove paralegal' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error removing paralegal' });
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     const handleAddDocumentsToCase = async (selectedDocs) => {
@@ -572,8 +648,15 @@ const CaseDetails = () => {
                                     {caseData.assignedLawyers && caseData.assignedLawyers.length > 0 ? (
                                         <div className="flex flex-wrap gap-1">
                                             {caseData.assignedLawyers.map((lawyer, idx) => (
-                                                <span key={idx} className="px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
+                                                <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
                                                     {lawyer.name}
+                                                    <button
+                                                        onClick={() => handleRemoveLawyer(lawyer._id)}
+                                                        className="ml-1 hover:bg-purple-600 rounded-full p-0.5 transition-colors"
+                                                        title="Remove lawyer"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
                                                 </span>
                                             ))}
                                         </div>
@@ -586,8 +669,15 @@ const CaseDetails = () => {
                                     {caseData.assignedParalegals && caseData.assignedParalegals.length > 0 ? (
                                         <div className="flex flex-wrap gap-1">
                                             {caseData.assignedParalegals.map((paralegal, idx) => (
-                                                <span key={idx} className="px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
+                                                <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
                                                     {paralegal.name}
+                                                    <button
+                                                        onClick={() => handleRemoveParalegal(paralegal._id)}
+                                                        className="ml-1 hover:bg-purple-600 rounded-full p-0.5 transition-colors"
+                                                        title="Remove paralegal"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
                                                 </span>
                                             ))}
                                         </div>

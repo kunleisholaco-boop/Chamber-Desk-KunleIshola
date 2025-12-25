@@ -54,6 +54,23 @@ router.get('/managers', auth, async (req, res) => {
     }
 });
 
+// @route   GET /api/users/admins
+// @desc    Get all Admin users
+// @access  Private
+router.get('/admins', auth, async (req, res) => {
+    try {
+        const admins = await User.find({ role: 'Admin' })
+            .select('name email role')
+            .sort({ name: 1 });
+
+        res.json(admins);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   GET /api/users/lawyers
 // @desc    Get all Lawyer users
 // @access  Private

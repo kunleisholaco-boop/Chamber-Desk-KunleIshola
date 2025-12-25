@@ -16,6 +16,7 @@ import HOCReportThread from './pages/HOC/HOCReportThread';
 import LawyerLayout from './pages/Lawyers/LawyerLayout';
 import LawyerDashboard from './pages/Lawyers/LawyerDashboard';
 import LawyerCaseDetails from './pages/Lawyers/LawyerCaseDetails';
+import LawyerReportThread from './pages/Lawyers/LawyerReportThread';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminHome from './pages/Admin/AdminHome';
 import ClientManagement from './pages/Shared/ClientManagement'; // Shared component
@@ -100,6 +101,7 @@ function App() {
           <Route index element={<LawyerDashboard />} />
           <Route path="cases" element={<CaseManagement />} />
           <Route path="cases/:id" element={<LawyerCaseDetails />} />
+          <Route path="cases/:caseId/report/:reportId" element={<LawyerReportThread />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="tasks/:id" element={<TaskDetails />} />
           <Route path="meetings" element={<Meetings />} />

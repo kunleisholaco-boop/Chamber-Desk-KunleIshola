@@ -30,6 +30,7 @@ router.get('/', auth, async (req, res) => {
         }
 
         const meetings = await Meeting.find(query)
+            .populate('createdBy', 'name email')
             .sort({ date: 1, time: 1 }); // Sort by date ascending
         res.json(meetings);
     } catch (err) {

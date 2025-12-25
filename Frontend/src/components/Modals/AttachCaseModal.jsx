@@ -18,12 +18,30 @@ const AttachCaseModal = ({ isOpen, onClose, onAttach, taskId }) => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+
             const response = await fetch(`${API_BASE_URL}/api/cases`, {
                 headers: { 'x-auth-token': token }
             });
+
             if (response.ok) {
                 const data = await response.json();
-                setCases(data);
+
+                // Filter cases based on user role
+                let filteredCases = data;
+
+                if (user.role === 'Lawyer') {
+                    // For lawyers, only show cases they are assigned to
+                    filteredCases = data.filter(caseItem =>
+                        caseItem.assignedLawyers &&
+                        caseItem.assignedLawyers.some(lawyer =>
+                            lawyer._id === user.id || lawyer === user.id
+                        )
+                    );
+                }
+                // For Admin, HOC, and other roles, show all cases
+
+                setCases(filteredCases);
             }
         } catch (err) {
             console.error('Error fetching cases:', err);

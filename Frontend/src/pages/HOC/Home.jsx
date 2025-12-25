@@ -117,14 +117,31 @@ const Home = () => {
             }
 
             // Upcoming Meetings
+            // Upcoming Meetings
             const meetingsRes = await fetch(`${API_BASE_URL}/api/meetings`, {
                 headers: { 'x-auth-token': token }
             });
             if (meetingsRes.ok) {
                 const meetings = await meetingsRes.json();
                 const now = new Date();
+                const sevenDaysFromNow = new Date();
+                sevenDaysFromNow.setDate(now.getDate() + 7);
+
                 const upcoming = meetings
-                    .filter(m => new Date(m.date) >= now && m.status !== 'cancelled')
+                    .filter(m => {
+                        const isCreator = m.createdBy && (m.createdBy._id === userId || m.createdBy === userId);
+
+                        // Combine date and time into a single DateTime
+                        const meetingDate = new Date(m.date);
+                        if (m.time) {
+                            const [hours, minutes] = m.time.split(':');
+                            meetingDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                        }
+
+                        const isFuture = meetingDate > now;
+                        const isWithinSevenDays = meetingDate <= sevenDaysFromNow;
+                        return (isFuture && isWithinSevenDays && m.status !== 'cancelled') || isCreator;
+                    })
                     .sort((a, b) => new Date(a.date) - new Date(b.date))
                     .slice(0, 5);
                 setUpcomingMeetings(upcoming);

@@ -104,11 +104,28 @@ const LawyerDashboard = () => {
             if (meetingsRes.ok) {
                 const meetings = await meetingsRes.json();
                 const now = new Date();
+                const sevenDaysFromNow = new Date();
+                sevenDaysFromNow.setDate(now.getDate() + 7);
+
                 const userMeetings = meetings.filter(m => {
                     const isAttendee = m.attendees && m.attendees.some(a => (a._id === userId || a === userId) || a.email === user.email);
                     const isHost = m.host && (m.host._id === userId || m.host === userId);
-                    const isFuture = new Date(m.date) >= now;
-                    return (isAttendee || isHost) && isFuture && m.status !== 'cancelled';
+                    const isCreator = m.createdBy && (m.createdBy._id === userId || m.createdBy === userId);
+
+                    // Combine date and time into a single DateTime
+                    const meetingDate = new Date(m.date);
+                    if (m.time) {
+                        const [hours, minutes] = m.time.split(':');
+                        meetingDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    }
+
+                    // Check if meeting is in the future (including time check for today)
+                    const isFuture = meetingDate > now;
+
+                    // Check if meeting is within the next 7 days
+                    const isWithinSevenDays = meetingDate <= sevenDaysFromNow;
+
+                    return (isAttendee || isHost || isCreator) && isFuture && isWithinSevenDays && m.status !== 'cancelled';
                 });
                 meetingsCount = userMeetings.length;
                 upcomingMeetings = userMeetings.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -665,11 +682,34 @@ const LawyerDashboard = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Attendees</label>
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedMeeting.attendees.map((attendee, idx) => (
-                                            <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                                                {attendee.name || attendee.email || attendee}
-                                            </span>
-                                        ))}
+                                        {/* Show creator first with badge */}
+                                        {selectedMeeting.createdBy && (
+                                            <div className="flex items-center justify-between w-full">
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm border border-purple-200">
+                                                    {typeof selectedMeeting.createdBy === 'string'
+                                                        ? selectedMeeting.createdBy
+                                                        : (selectedMeeting.createdBy.name || selectedMeeting.createdBy.email)}
+                                                    <span className="text-[10px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded">HOST</span>
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-full text-xs font-medium capitalize bg-green-100 text-green-800">Accepted</span>
+                                            </div>
+                                        )}
+                                        {/* Show other attendees */}
+                                        {selectedMeeting.attendees.map((attendee, idx) => {
+                                            const attendeeEmail = attendee.email || attendee;
+                                            const creatorEmail = typeof selectedMeeting.createdBy === 'string'
+                                                ? selectedMeeting.createdBy
+                                                : (selectedMeeting.createdBy?.email || '');
+
+                                            // Skip creator as they're shown above
+                                            if (attendeeEmail === creatorEmail) return null;
+
+                                            return (
+                                                <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                                                    {attendee.name || attendee.email || attendee}
+                                                </span>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -684,9 +724,9 @@ const LawyerDashboard = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
-        </div>
+        </div >
     );
 };
 

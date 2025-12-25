@@ -51,6 +51,10 @@ const TaskDetails = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isPostingComment, setIsPostingComment] = useState(false);
+    const [showReplyMentionDropdown, setShowReplyMentionDropdown] = useState(false);
+    const [replyMentionSearch, setReplyMentionSearch] = useState('');
+    const [replyMentionStartPos, setReplyMentionStartPos] = useState(0);
+    const [replyTextareaRef] = useState(React.createRef());
 
     useEffect(() => {
         fetchTask();
@@ -502,6 +506,57 @@ const TaskDetails = () => {
         }
     };
 
+    const handleReplyChange = (e) => {
+        const value = e.target.value;
+        const cursorPos = e.target.selectionStart;
+        setReplyText(value);
+
+        // Check for @ mention in reply
+        const textBeforeCursor = value.substring(0, cursorPos);
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (lastAtIndex !== -1) {
+            const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+            // Check if there's no space after @
+            if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
+                setReplyMentionSearch(textAfterAt.toLowerCase());
+                setReplyMentionStartPos(lastAtIndex);
+                setShowReplyMentionDropdown(true);
+            } else {
+                setShowReplyMentionDropdown(false);
+            }
+        } else {
+            setShowReplyMentionDropdown(false);
+        }
+    };
+
+    const handleReplyMentionSelect = (user) => {
+        const beforeMention = replyText.substring(0, replyMentionStartPos);
+        const afterMention = replyText.substring(replyTextareaRef.current?.selectionStart || replyText.length);
+        const newText = `${beforeMention}@${user.name} ${afterMention}`;
+        const cursorPosition = beforeMention.length + user.name.length + 2;
+
+        setReplyText(newText);
+        setShowReplyMentionDropdown(false);
+        setReplyMentionSearch('');
+
+        // Focus and set cursor position after the mention
+        setTimeout(() => {
+            if (replyTextareaRef.current) {
+                replyTextareaRef.current.focus();
+                replyTextareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+            }
+        }, 0);
+    };
+
+    const getFilteredReplyMentionUsers = () => {
+        const members = getTaskForceMembers();
+        if (!replyMentionSearch) return members;
+        return members.filter(user =>
+            user.name.toLowerCase().includes(replyMentionSearch)
+        );
+    };
+
     const handleAddReply = async (commentId) => {
         if (!replyText.trim()) return;
 
@@ -517,6 +572,7 @@ const TaskDetails = () => {
             setTask(prev => ({ ...prev, comments: response.data }));
             setReplyText('');
             setReplyingTo(null);
+            setShowReplyMentionDropdown(false);
         } catch (err) {
             console.error('Error adding reply:', err);
         }
@@ -1202,35 +1258,69 @@ const TaskDetails = () => {
 
                                         {/* Reply Input */}
                                         {replyingTo === comment._id && (
-                                            <div className="mt-3 ml-4 flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={replyText}
-                                                    onChange={(e) => setReplyText(e.target.value)}
-                                                    onKeyPress={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            handleAddReply(comment._id);
-                                                        }
-                                                    }}
-                                                    placeholder="Write a reply..."
-                                                    className="flex-1 px-3 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    onClick={() => handleAddReply(comment._id)}
-                                                    className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
-                                                >
-                                                    <Send className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setReplyingTo(null);
-                                                        setReplyText('');
-                                                    }}
-                                                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
+                                            <div className="mt-3 ml-4">
+                                                <div className="flex gap-2 relative">
+                                                    <div className="flex-1 relative">
+                                                        <input
+                                                            ref={replyTextareaRef}
+                                                            type="text"
+                                                            value={replyText}
+                                                            onChange={handleReplyChange}
+                                                            onKeyPress={(e) => {
+                                                                if (e.key === 'Enter' && !showReplyMentionDropdown) {
+                                                                    handleAddReply(comment._id);
+                                                                }
+                                                            }}
+                                                            placeholder="Write a reply... (Type @ to mention someone)"
+                                                            className="w-full px-3 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                                                            autoFocus
+                                                        />
+                                                        {/* Reply Mention Dropdown */}
+                                                        {showReplyMentionDropdown && (
+                                                            <div className="absolute z-10 mt-1 w-full max-w-xs bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                                {getFilteredReplyMentionUsers().length > 0 ? (
+                                                                    getFilteredReplyMentionUsers().map((user, index) => (
+                                                                        <button
+                                                                            key={user._id}
+                                                                            onClick={() => handleReplyMentionSelect(user)}
+                                                                            className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
+                                                                        >
+                                                                            <div className={`w-8 h-8 rounded-full ${getAvatarColor(index)} flex items-center justify-center flex-shrink-0`}>
+                                                                                <span className="text-white font-semibold text-xs">
+                                                                                    {getInitials(user.name)}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                                                                                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                                                            </div>
+                                                                        </button>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                                                        No members found
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleAddReply(comment._id)}
+                                                        className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
+                                                    >
+                                                        <Send className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setReplyingTo(null);
+                                                            setReplyText('');
+                                                            setShowReplyMentionDropdown(false);
+                                                        }}
+                                                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
 

@@ -33,6 +33,7 @@ const CaseManagement = () => {
             if (response.ok) {
                 const data = await response.json();
 
+                // Backend now handles all filtering including task-based access
                 // HOC: Filter cases assigned to or created by this HOC
                 if (userRole === 'HOC') {
                     const hocCases = data.filter(caseItem =>
@@ -40,14 +41,8 @@ const CaseManagement = () => {
                         (caseItem.createdBy && caseItem.createdBy._id === userId)
                     );
                     setCases(hocCases);
-                } else if (userRole === 'Lawyer') {
-                    // Lawyer: Only show cases assigned to them
-                    const lawyerCases = data.filter(caseItem =>
-                        caseItem.assignedLawyers && caseItem.assignedLawyers.some(l => l._id === userId || l === userId)
-                    );
-                    setCases(lawyerCases);
                 } else {
-                    // Admin: Show all cases
+                    // Lawyer and Admin: Backend returns correctly filtered cases
                     setCases(data);
                 }
             }
@@ -310,6 +305,22 @@ const CaseManagement = () => {
                                         : 'Not Assigned'}
                                 </span>
                             </div>
+
+                            {/* Task Access Badge */}
+                            {caseItem.accessType === 'task' && (
+                                <div className="mb-3 pt-3 border-t border-gray-200">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium w-fit">
+                                            Task Access
+                                        </span>
+                                        {caseItem.taskInfo?.task?.name && (
+                                            <span className="text-xs text-gray-500">
+                                                via task: {caseItem.taskInfo.task.name}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Date Started */}
                             <p className="text-xs text-gray-500">

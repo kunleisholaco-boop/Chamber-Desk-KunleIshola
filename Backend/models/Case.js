@@ -126,7 +126,7 @@ const CaseSchema = new mongoose.Schema({
             },
             authorType: {
                 type: String,
-                enum: ['client', 'hoc'],
+                enum: ['client', 'hoc', 'lawyer'],
                 required: true
             },
             authorName: {
@@ -142,6 +142,22 @@ const CaseSchema = new mongoose.Schema({
                 default: Date.now
             }
         }]
+    }],
+    taskBasedAccess: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        task: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Task',
+            required: true
+        },
+        grantedAt: {
+            type: Date,
+            default: Date.now
+        }
     }],
     createdAt: {
         type: Date,

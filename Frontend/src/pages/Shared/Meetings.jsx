@@ -955,9 +955,38 @@ const Meetings = () => {
                                 <div>
                                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Attendees</label>
                                     <div className="flex flex-col gap-2">
+                                        {/* Show creator first with badge */}
+                                        {selectedMeeting.createdBy && (() => {
+                                            const creatorEmail = typeof selectedMeeting.createdBy === 'string'
+                                                ? selectedMeeting.createdBy
+                                                : (selectedMeeting.createdBy.email || '');
+                                            const creatorName = typeof selectedMeeting.createdBy === 'string'
+                                                ? selectedMeeting.createdBy
+                                                : (selectedMeeting.createdBy.name || selectedMeeting.createdBy.email);
+
+                                            return (
+                                                <div className="flex items-center justify-between text-sm pb-2 border-b border-purple-200">
+                                                    <span className="flex items-center gap-1.5 text-gray-700">
+                                                        {creatorName}
+                                                        <span className="text-[10px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded">HOST</span>
+                                                    </span>
+                                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium capitalize bg-green-100 text-green-800">
+                                                        Accepted
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Show other attendees */}
                                         {selectedMeeting.attendees.map((attendee, idx) => {
                                             const email = typeof attendee === 'string' ? attendee : attendee.email;
                                             const status = typeof attendee === 'string' ? 'pending' : attendee.status;
+                                            const creatorEmail = typeof selectedMeeting.createdBy === 'string'
+                                                ? selectedMeeting.createdBy
+                                                : (selectedMeeting.createdBy?.email || '');
+
+                                            // Skip creator as they're shown above
+                                            if (email === creatorEmail) return null;
 
                                             let statusColor = 'bg-gray-100 text-gray-800';
                                             if (status === 'accepted') statusColor = 'bg-green-100 text-green-800';
@@ -1046,40 +1075,42 @@ const Meetings = () => {
                                 )}
                         </div>
                     </div>
-                </div>
+                </div >
             )}
 
             {/* Cancel Confirmation Modal */}
-            {showCancelModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
-                        <div className="p-6 text-center">
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertTriangle className="w-6 h-6 text-red-600" />
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Cancel Meeting?</h3>
-                            <p className="text-sm text-gray-600 mb-6">
-                                Are you sure you want to cancel this meeting? This action cannot be undone, and all attendees will be notified.
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowCancelModal(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-                                >
-                                    No, Keep it
-                                </button>
-                                <button
-                                    onClick={confirmCancel}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
-                                >
-                                    Yes, Cancel
-                                </button>
+            {
+                showCancelModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+                            <div className="p-6 text-center">
+                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">Cancel Meeting?</h3>
+                                <p className="text-sm text-gray-600 mb-6">
+                                    Are you sure you want to cancel this meeting? This action cannot be undone, and all attendees will be notified.
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowCancelModal(false)}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                                    >
+                                        No, Keep it
+                                    </button>
+                                    <button
+                                        onClick={confirmCancel}
+                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                                    >
+                                        Yes, Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

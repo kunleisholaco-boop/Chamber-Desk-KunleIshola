@@ -8,6 +8,7 @@ const CaseReport = require('../models/CaseReport');
 const Case = require('../models/Case');
 const Notification = require('../models/Notification');
 const { notifyAdmins, notifyCaseStakeholders } = require('../utils/notificationHelper');
+const { getUserTaskBasedCases, hasAnyCaseAccess } = require('../utils/caseAccessHelper');
 
 // Helper to create automated report
 const createAutomatedReport = async (caseId, userId, actionType, extra = {}) => {
@@ -166,14 +167,60 @@ router.post('/', auth, async (req, res) => {
 // @access  Private
 router.get('/', auth, async (req, res) => {
     try {
-        const cases = await Case.find()
-            .populate('client', 'name email')
-            .populate('assignedTo', 'name email')
-            .populate('assignedLawyers', 'name email')
-            .populate('assignedParalegals', 'name email')
-            .sort({ createdAt: -1 });
+        const userId = req.user.id;
+        const user = await User.findById(userId);
 
-        res.json(cases);
+        // Get directly assigned cases based on role
+        let directCases = [];
+
+        if (user.role === 'Admin' || user.role === 'HOC' || user.role === 'Superadmin') {
+            // Admins, HOC, and Superadmins see all cases
+            directCases = await Case.find()
+                .populate('client', 'name email')
+                .populate('assignedTo', 'name email')
+                .populate('assignedLawyers', 'name email')
+                .populate('assignedParalegals', 'name email')
+                .sort({ createdAt: -1 });
+        } else if (user.role === 'Lawyer') {
+            // Lawyers see cases they're assigned to
+            directCases = await Case.find({
+                assignedLawyers: userId
+            })
+                .populate('client', 'name email')
+                .populate('assignedTo', 'name email')
+                .populate('assignedLawyers', 'name email')
+                .populate('assignedParalegals', 'name email')
+                .sort({ createdAt: -1 });
+        } else if (user.role === 'Paralegal') {
+            // Paralegals see cases they're assigned to
+            directCases = await Case.find({
+                assignedParalegals: userId
+            })
+                .populate('client', 'name email')
+                .populate('assignedTo', 'name email')
+                .populate('assignedLawyers', 'name email')
+                .populate('assignedParalegals', 'name email')
+                .sort({ createdAt: -1 });
+        }
+
+        // Get task-based access cases
+        const taskBasedCases = await getUserTaskBasedCases(userId);
+
+        // Mark direct cases
+        const directCasesWithType = directCases.map(c => ({
+            ...c.toObject(),
+            accessType: 'direct'
+        }));
+
+        // Merge and deduplicate (direct access takes precedence)
+        const directCaseIds = new Set(directCases.map(c => c._id.toString()));
+        const uniqueTaskCases = taskBasedCases.filter(
+            tc => !directCaseIds.has(tc._id.toString())
+        );
+
+        const allCases = [...directCasesWithType, ...uniqueTaskCases];
+
+        res.json(allCases);
 
     } catch (err) {
         console.error(err.message);
@@ -210,6 +257,22 @@ router.get('/:id', auth, async (req, res) => {
 
         if (!caseItem) {
             return res.status(404).json({ msg: 'Case not found' });
+        }
+
+        // Check if user has access (direct or task-based)
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        // Admins, HOC, and Superadmins have access to all cases
+        const isAdmin = ['Admin', 'HOC', 'Superadmin'].includes(user.role);
+
+        if (!isAdmin) {
+            // Check if user has any access to this case
+            const hasAccess = await hasAnyCaseAccess(req.params.id, userId);
+
+            if (!hasAccess) {
+                return res.status(403).json({ msg: 'Access denied to this case' });
+            }
         }
 
         // Auto-generate shareToken if missing (for legacy cases)
@@ -1333,10 +1396,10 @@ router.post('/:id/report/:reportId/reply', auth, async (req, res) => {
             return res.status(400).json({ msg: 'Reply content is required' });
         }
 
-        // Check if user is HOC
+        // Check if user is HOC or Lawyer
         const user = await User.findById(req.user.id);
-        if (!user || user.role !== 'HOC') {
-            return res.status(403).json({ msg: 'Only HOC can reply to client reports' });
+        if (!user || (user.role !== 'HOC' && user.role !== 'Lawyer')) {
+            return res.status(403).json({ msg: 'Only HOC and Lawyers can reply to client reports' });
         }
 
         const caseItem = await Case.findById(req.params.id);
@@ -1350,10 +1413,10 @@ router.post('/:id/report/:reportId/reply', auth, async (req, res) => {
             return res.status(404).json({ msg: 'Report not found' });
         }
 
-        // Add HOC reply
+        // Add reply (HOC or Lawyer)
         report.replies.push({
             author: req.user.id,
-            authorType: 'hoc',
+            authorType: user.role.toLowerCase(), // 'hoc' or 'lawyer'
             authorName: user.name,
             content: content.trim(),
             createdAt: new Date()
@@ -1361,13 +1424,13 @@ router.post('/:id/report/:reportId/reply', auth, async (req, res) => {
 
         await caseItem.save();
 
-        // Notify client about HOC's reply
+        // Notify client about the reply
         try {
             if (caseItem.client) {
                 await new Notification({
                     recipient: caseItem.client,
                     type: 'client_report_added',
-                    message: `${user.name} (HOC) replied to a case report for "${caseItem.caseTitle}"`,
+                    message: `${user.name} replied to a case report for "${caseItem.caseTitle}"`,
                     relatedEntity: {
                         entityType: 'Case',
                         entityId: caseItem._id
@@ -1375,10 +1438,10 @@ router.post('/:id/report/:reportId/reply', auth, async (req, res) => {
                 }).save();
             }
         } catch (notifErr) {
-            console.error('Error notifying client about HOC reply:', notifErr.message);
+            console.error('Error notifying client about reply:', notifErr.message);
         }
 
-        // Notify HOC (confirmation) that their reply was sent
+        // Notify user (confirmation) that their reply was sent
         try {
             if (req.user.id) {
                 await new Notification({
@@ -1392,7 +1455,7 @@ router.post('/:id/report/:reportId/reply', auth, async (req, res) => {
                 }).save();
             }
         } catch (notifErr) {
-            console.error('Error notifying HOC about reply confirmation:', notifErr.message);
+            console.error('Error notifying user about reply confirmation:', notifErr.message);
         }
 
         res.json({

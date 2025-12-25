@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { grantTaskBasedAccess, revokeTaskBasedAccess, revokeAllTaskAccess } = require('../utils/caseAccessHelper');
 
 // Helper function to notify all task force members
 const notifyTaskForce = async (task, currentUserId, notificationType, message) => {
@@ -106,6 +107,18 @@ router.post('/', auth, async (req, res) => {
         });
 
         const task = await newTask.save();
+
+        // Grant task-based case access if task is linked to a case
+        if (task.case) {
+            const allMembers = [
+                ...(Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : []),
+                ...(task.collaborators || [])
+            ];
+
+            for (const memberId of allMembers) {
+                await grantTaskBasedAccess(task.case, memberId, task._id);
+            }
+        }
 
         // Get user name for notification
         const user = await User.findById(req.user.id).select('name');
@@ -239,6 +252,9 @@ router.put('/:id', auth, async (req, res) => {
         const oldAssignees = task.assignedTo ? (Array.isArray(task.assignedTo) ? task.assignedTo.map(a => a.toString()) : [task.assignedTo.toString()]) : [];
         const oldCollaborators = task.collaborators ? task.collaborators.map(c => c.toString()) : [];
 
+        // Track old status BEFORE updating
+        const oldStatus = task.status;
+
         task.name = name || task.name;
         task.description = description || task.description;
         if (caseId) task.case = caseId;
@@ -258,6 +274,55 @@ router.put('/:id', auth, async (req, res) => {
         const newAssignees = assignedTo ? (Array.isArray(assignedTo) ? assignedTo : [assignedTo]).filter(a => !oldAssignees.includes(a.toString())) : [];
         const newCollaborators = collaborators ? collaborators.filter(c => !oldCollaborators.includes(c.toString())) : [];
         const newMembers = [...newAssignees, ...newCollaborators];
+
+        // Grant task-based access to new members if task has a case
+        if (task.case && newMembers.length > 0) {
+            for (const memberId of newMembers) {
+                await grantTaskBasedAccess(task.case, memberId, task._id);
+            }
+        }
+
+        // Detect removed members
+        const currentAssignees = assignedTo ? (Array.isArray(assignedTo) ? assignedTo.map(a => a.toString()) : [assignedTo.toString()]) : [];
+        const currentCollaborators = collaborators ? collaborators.map(c => c.toString()) : [];
+        const removedAssignees = oldAssignees.filter(a => !currentAssignees.includes(a));
+        const removedCollaborators = oldCollaborators.filter(c => !currentCollaborators.includes(c));
+        const removedMembers = [...removedAssignees, ...removedCollaborators];
+
+        // Revoke task-based access for removed members
+        if (task.case && removedMembers.length > 0) {
+            for (const memberId of removedMembers) {
+                await revokeTaskBasedAccess(task.case, memberId, task._id);
+            }
+        }
+
+        // Handle task-based access based on status changes
+        const closedStatuses = ['Completed', 'Cancelled', 'Closed'];
+        const activeStatuses = ['To-Do', 'Ongoing', 'Overdue'];
+        
+        if (status && status !== oldStatus && task.case) {
+            const wasClosedBefore = closedStatuses.includes(oldStatus);
+            const isClosedNow = closedStatuses.includes(status);
+            const isActiveNow = activeStatuses.includes(status);
+            
+            // If changing TO a closed status, revoke all access
+            if (isClosedNow && !wasClosedBefore) {
+                console.log(`Task ${task._id} status changed to ${status} - revoking all task-based access`);
+                await revokeAllTaskAccess(task._id);
+            }
+            // If changing FROM a closed status back to active, re-grant access to all members
+            else if (isActiveNow && wasClosedBefore) {
+                console.log(`Task ${task._id} status changed from ${oldStatus} to ${status} - re-granting task-based access`);
+                const allMembers = [
+                    ...(Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : []),
+                    ...(task.collaborators || [])
+                ];
+                
+                for (const memberId of allMembers) {
+                    await grantTaskBasedAccess(task.case, memberId, task._id);
+                }
+            }
+        }
 
         // Notify newly added members
         if (newMembers.length > 0) {
@@ -453,6 +518,9 @@ router.delete('/:id', auth, async (req, res) => {
         if (task.createdBy.toString() !== req.user.id) {
             return res.status(403).json({ msg: 'Not authorized to delete this task' });
         }
+
+        // Revoke all task-based access before deletion
+        await revokeAllTaskAccess(task._id);
 
         // Get user name and notify task force before deletion
         const user = await User.findById(req.user.id).select('name');

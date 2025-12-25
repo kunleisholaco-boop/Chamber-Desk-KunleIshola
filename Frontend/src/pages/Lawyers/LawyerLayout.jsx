@@ -9,6 +9,13 @@ const LawyerLayout = () => {
     const [unreadNotifications, setUnreadNotifications] = useState(0);
 
     useEffect(() => {
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
         fetchUnreadCount();
         // Optional: Poll every minute for new notifications
         const interval = setInterval(fetchUnreadCount, 60000);

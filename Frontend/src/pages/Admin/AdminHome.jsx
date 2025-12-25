@@ -101,30 +101,6 @@ const AdminHome = () => {
                 // Split into complaints and feature requests
                 const complaints = tickets.filter(t => t.type === 'Complaint').slice(0, 5);
                 const featureRequests = tickets.filter(t => t.type === 'Feature Request').slice(0, 5);
-                setRecentTickets({ complaints, featureRequests });
-            }
-            // Upcoming Meetings
-            const meetingsRes = await fetch(`${API_BASE_URL}/api/meetings`, { headers: { 'x-auth-token': token } });
-            if (meetingsRes.ok) {
-                const meetings = await meetingsRes.json();
-                const now = new Date();
-                const upcoming = meetings
-                    .filter(m => new Date(m.date) >= now && m.status !== 'cancelled')
-                    .sort((a, b) => new Date(a.date) - new Date(b.date))
-                    .slice(0, 5);
-                setUpcomingMeetings(upcoming);
-            }
-            // Recent Broadcasts
-            const broadcastsRes = await fetch(`${API_BASE_URL}/api/broadcasts`, { headers: { 'x-auth-token': token } });
-            if (broadcastsRes.ok) {
-                const broadcasts = await broadcastsRes.json();
-                setRecentBroadcasts(broadcasts.slice(0, 5));
-            }
-            // My Tasks (close to due date)
-            const tasksRes = await fetch(`${API_BASE_URL}/api/tasks/my-tasks`, { headers: { 'x-auth-token': token } });
-            if (tasksRes.ok) {
-                const tasks = await tasksRes.json();
-                const now = new Date();
                 const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
                 const tasksDueSoon = tasks
                     .filter(t => {
@@ -136,12 +112,49 @@ const AdminHome = () => {
                     .slice(0, 5);
                 setMyTasks(tasksDueSoon);
             }
+            // Upcoming Meetings
+            const meetingsRes = await fetch(`${API_BASE_URL}/api/meetings`, { headers: { 'x-auth-token': token } });
+            if (meetingsRes.ok) {
+                const meetings = await meetingsRes.json();
+                const now = new Date();
+                const sevenDaysFromNow = new Date();
+                sevenDaysFromNow.setDate(now.getDate() + 7);
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const userId = user.id;
+
+                const upcoming = meetings
+                    .filter(m => {
+                        const isCreator = m.createdBy && (m.createdBy._id === userId || m.createdBy === userId);
+
+                        // Combine date and time into a single DateTime
+                        const meetingDate = new Date(m.date);
+                        if (m.time) {
+                            const [hours, minutes] = m.time.split(':');
+                            meetingDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                        }
+
+                        const isFuture = meetingDate > now;
+                        const isWithinSevenDays = meetingDate <= sevenDaysFromNow;
+                        return (isFuture && isWithinSevenDays && m.status !== 'cancelled') || isCreator;
+                    })
+                    .sort((a, b) => new Date(a.date) - new Date(b.date))
+                    .slice(0, 5);
+                setUpcomingMeetings(upcoming);
+            }
+            // Recent Broadcasts
+            const broadcastsRes = await fetch(`${API_BASE_URL}/api/broadcasts`, { headers: { 'x-auth-token': token } });
+            if (broadcastsRes.ok) {
+                const broadcasts = await broadcastsRes.json();
+                setRecentBroadcasts(broadcasts.slice(0, 5));
+            }
+
         } catch (err) {
             console.error('Error fetching dashboard data:', err);
         } finally {
             setIsLoading(false);
         }
     };
+
 
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -766,11 +779,34 @@ const AdminHome = () => {
                                 <div>
                                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Attendees</label>
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedMeeting.attendees.map((attendee, idx) => (
-                                            <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                {typeof attendee === 'string' ? attendee : attendee.email}
-                                            </span>
-                                        ))}
+                                        {/* Show creator first with badge */}
+                                        {selectedMeeting.createdBy && (
+                                            <div className="flex items-center justify-between w-full">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                                                    {typeof selectedMeeting.createdBy === 'string'
+                                                        ? selectedMeeting.createdBy
+                                                        : (selectedMeeting.createdBy.name || selectedMeeting.createdBy.email)}
+                                                    <span className="text-[10px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded">HOST</span>
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-full text-xs font-medium capitalize bg-green-100 text-green-800">Accepted</span>
+                                            </div>
+                                        )}
+                                        {/* Show other attendees */}
+                                        {selectedMeeting.attendees.map((attendee, idx) => {
+                                            const attendeeEmail = typeof attendee === 'string' ? attendee : attendee.email;
+                                            const creatorEmail = typeof selectedMeeting.createdBy === 'string'
+                                                ? selectedMeeting.createdBy
+                                                : (selectedMeeting.createdBy?.email || '');
+
+                                            // Skip creator as they're shown above
+                                            if (attendeeEmail === creatorEmail) return null;
+
+                                            return (
+                                                <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    {attendeeEmail}
+                                                </span>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}

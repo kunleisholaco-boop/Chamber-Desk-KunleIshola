@@ -40,9 +40,13 @@ const RoleSidebar = ({ role = 'admin', navigationItems = [], unreadNotifications
     const colors = colorSchemes[role] || colorSchemes.admin;
 
     const handleLogout = () => {
+        // Clear all authentication data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/login', { replace: true });
+
+        // Use window.location.href for a full page reload
+        // This clears the React state and prevents back button navigation
+        window.location.href = '/login';
     };
 
     const handleNavigation = (path) => {
@@ -61,8 +65,8 @@ const RoleSidebar = ({ role = 'admin', navigationItems = [], unreadNotifications
         <button
             onClick={() => handleNavigation(path)}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full relative ${isActive(path)
-                    ? `${colors.active} text-white`
-                    : `${colors.textLight} hover:text-white ${colors.hover}`
+                ? `${colors.active} text-white`
+                : `${colors.textLight} hover:text-white ${colors.hover}`
                 }`}
         >
             <Icon className="w-5 h-5" />
