@@ -25,6 +25,7 @@ export default defineConfig({
       'querulous-ashien-khrien-29067abe.koyeb.app',
       '.koyeb.app',
       'localhost',
+      'chamberdesk.kunleisholaco.com',
     ],
   },
 })
