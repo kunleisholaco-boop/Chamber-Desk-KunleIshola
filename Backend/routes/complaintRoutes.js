@@ -105,17 +105,16 @@ router.post('/:complaintId/reply', auth, async (req, res) => {
             _id: { $ne: req.user.id }
         });
 
-        const staffNotifications = staffUsers.map(staff => ({
-            recipient: staff._id,
-            type: 'client_complaint_reply',
-            message: `${user.name} replied to complaint: "${complaint.subject}"`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            staffUsers,
+            'client_complaint_reply',
+            `${user.name} replied to complaint: "${complaint.subject}"`,
+            {
                 entityType: 'Client',
                 entityId: complaint.client
             }
-        }));
-
-        await Notification.insertMany(staffNotifications);
+        );
 
         res.json({ msg: 'Reply added successfully', complaint });
     } catch (err) {
@@ -187,17 +186,16 @@ router.patch('/:complaintId/status', auth, async (req, res) => {
             _id: { $ne: req.user.id }
         });
 
-        const staffNotifications = staffUsers.map(staff => ({
-            recipient: staff._id,
-            type: 'client_complaint_status_changed',
-            message: `Complaint "${complaint.subject}" status changed to: ${status}`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            staffUsers,
+            'client_complaint_status_changed',
+            `Complaint "${complaint.subject}" status changed to: ${status}`,
+            {
                 entityType: 'Client',
                 entityId: complaint.client
             }
-        }));
-
-        await Notification.insertMany(staffNotifications);
+        );
 
         res.json({ msg: 'Status updated successfully', complaint });
     } catch (err) {

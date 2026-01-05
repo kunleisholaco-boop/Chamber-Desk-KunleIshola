@@ -35,20 +35,19 @@ const notifyTaskForce = async (task, currentUserId, notificationType, message) =
             });
         }
 
-        // Create notifications for all task force members (including the action creator)
-        const notifications = Array.from(taskForceIds).map(userId => ({
-            recipient: userId,
-            type: notificationType,
-            message: message,
-            relatedEntity: {
+        // Fetch users to get emails
+        const users = await User.find({ _id: { $in: Array.from(taskForceIds) } });
+
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            users,
+            notificationType,
+            message,
+            {
                 entityType: 'Task',
                 entityId: task._id
             }
-        }));
-
-        if (notifications.length > 0) {
-            await Notification.insertMany(notifications);
-        }
+        );
     } catch (err) {
         console.error('Error sending task notifications:', err);
     }
@@ -351,16 +350,17 @@ router.put('/:id', auth, async (req, res) => {
 
         // Notify newly added members
         if (newMembers.length > 0) {
-            const memberNotifications = newMembers.map(memberId => ({
-                recipient: memberId,
-                type: 'task_member_added',
-                message: `${user.name} added you to task: ${task.name}`,
-                relatedEntity: {
+            const newMemberUsers = await User.find({ _id: { $in: newMembers } });
+            const { notifyUsers } = require('../utils/notificationHelper');
+            await notifyUsers(
+                newMemberUsers,
+                'task_member_added',
+                `${user.name} added you to task: ${task.name}`,
+                {
                     entityType: 'Task',
                     entityId: task._id
                 }
-            }));
-            await Notification.insertMany(memberNotifications);
+            );
         }
 
         // Notify existing task force about update

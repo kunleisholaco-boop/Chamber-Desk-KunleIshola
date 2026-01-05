@@ -1048,19 +1048,16 @@ router.post('/:id/reports', auth, async (req, res) => {
         // Notify all managers about the new report
         try {
             const managers = await User.find({ role: 'Manager' });
-            const managerNotifications = managers.map(manager => ({
-                recipient: manager._id,
-                type: 'case_report_added',
-                message: `${authorName} added a report to case "${caseItem?.caseTitle || 'Unknown'}"`,
-                relatedEntity: {
+            const { notifyUsers } = require('../utils/notificationHelper');
+            await notifyUsers(
+                managers,
+                'case_report_added',
+                `${authorName} added a report to case "${caseItem?.caseTitle || 'Unknown'}"`,
+                {
                     entityType: 'Case',
                     entityId: caseItem._id
                 }
-            }));
-
-            if (managerNotifications.length > 0) {
-                await Notification.insertMany(managerNotifications);
-            }
+            );
         } catch (notifErr) {
             console.error('Error creating manager report notifications:', notifErr.message);
         }
@@ -1275,19 +1272,16 @@ router.post('/:id/client-report', auth, async (req, res) => {
         // Notify all managers
         try {
             const managers = await User.find({ role: 'Manager' });
-            const managerNotifications = managers.map(manager => ({
-                recipient: manager._id,
-                type: 'case_report_added',
-                message: `${user.name} (HOC) added a report to case "${caseItem.caseTitle}"`,
-                relatedEntity: {
+            const { notifyUsers } = require('../utils/notificationHelper');
+            await notifyUsers(
+                managers,
+                'case_report_added',
+                `${user.name} (HOC) added a report to case "${caseItem.caseTitle}"`,
+                {
                     entityType: 'Case',
                     entityId: caseItem._id
                 }
-            }));
-
-            if (managerNotifications.length > 0) {
-                await Notification.insertMany(managerNotifications);
-            }
+            );
         } catch (notifErr) {
             console.error('Error notifying managers about HOC report:', notifErr.message);
         }
@@ -1630,43 +1624,38 @@ router.post('/:id/hoc-manager-comments', auth, async (req, res) => {
             const recipients = await User.find({ role: { $in: ['HOC', 'Manager'] } });
             console.log(`📧 Found ${recipients.length} HOC/Manager recipients for notifications`);
 
-            const notifications = recipients.map(recipient => {
-                const isSender = recipient._id.toString() === req.user.id;
+            // We need to customize the message for each user, so we can't use notifyUsers directly for the whole batch if messages differ.
+            // However, notifyUsers sends the SAME message to all.
+            // Here, the message logic is complex (mentions, sender vs others).
+            // So we should loop and call notifyUsers (or sendNotificationEmail) individually or group them.
 
-                // Check if user was mentioned
-                const wasMentioned = mentions && mentions.some(mention =>
-                    recipient.name.toLowerCase().includes(mention.toLowerCase())
-                );
-
-                // Different message for sender vs others
-                let message;
-                if (isSender) {
-                    message = `Your comment on case "${caseItem.caseTitle}" has been posted`;
-                } else if (wasMentioned) {
-                    message = `${user.name} (${user.role}) mentioned you in a comment on case "${caseItem.caseTitle}"`;
-                } else {
-                    message = `${user.name} (${user.role}) commented on case "${caseItem.caseTitle}"`;
-                }
-
-                console.log(`📧 Creating notification for ${recipient.name} (${recipient.role}): ${message}`);
-
-                return {
-                    recipient: recipient._id,
-                    type: 'hoc_manager_comment',
-                    message: message,
-                    relatedEntity: {
-                        entityType: 'Case',
-                        entityId: caseItem._id
-                    }
-                };
-            });
-
-            if (notifications.length > 0) {
-                const result = await Notification.insertMany(notifications);
-                console.log(`✅ Successfully created ${result.length} notifications`);
-            } else {
-                console.log('⚠️ No notifications to create');
+            // Group 1: Sender
+            const sender = recipients.find(r => r._id.toString() === req.user.id);
+            if (sender) {
+                const { notifyUsers } = require('../utils/notificationHelper');
+                await notifyUsers([sender], 'hoc_manager_comment', `Your comment on case "${caseItem.caseTitle}" has been posted`, { entityType: 'Case', entityId: caseItem._id });
             }
+
+            // Group 2: Mentioned users (excluding sender)
+            const mentionedUsers = recipients.filter(r =>
+                r._id.toString() !== req.user.id &&
+                mentions && mentions.some(mention => r.name.toLowerCase().includes(mention.toLowerCase()))
+            );
+            if (mentionedUsers.length > 0) {
+                const { notifyUsers } = require('../utils/notificationHelper');
+                await notifyUsers(mentionedUsers, 'hoc_manager_comment', `${user.name} (${user.role}) mentioned you in a comment on case "${caseItem.caseTitle}"`, { entityType: 'Case', entityId: caseItem._id });
+            }
+
+            // Group 3: Others (excluding sender and mentioned)
+            const otherUsers = recipients.filter(r =>
+                r._id.toString() !== req.user.id &&
+                (!mentions || !mentions.some(mention => r.name.toLowerCase().includes(mention.toLowerCase())))
+            );
+            if (otherUsers.length > 0) {
+                const { notifyUsers } = require('../utils/notificationHelper');
+                await notifyUsers(otherUsers, 'hoc_manager_comment', `${user.name} (${user.role}) commented on case "${caseItem.caseTitle}"`, { entityType: 'Case', entityId: caseItem._id });
+            }
+
         } catch (notifErr) {
             console.error('❌ Error creating notifications:', notifErr.message);
             console.error('Full error:', notifErr);

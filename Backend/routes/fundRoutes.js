@@ -27,17 +27,16 @@ router.post('/', auth, async (req, res) => {
         // Notify Admin Officers
         const adminOfficers = await User.find({ role: 'Admin' });
 
-        const notifications = adminOfficers.map(admin => ({
-            recipient: admin._id,
-            type: 'general',
-            message: `New fund requisition of ₦${amount.toLocaleString()} submitted`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            adminOfficers,
+            'general',
+            `New fund requisition of ₦${amount.toLocaleString()} submitted`,
+            {
                 entityType: 'FundRequisition',
                 entityId: fundRequisition._id
             }
-        }));
-
-        await Notification.insertMany(notifications);
+        );
 
         // Notify the requester (HOC/User)
         const requesterNotification = new Notification({
@@ -451,7 +450,39 @@ router.post('/:id/discuss', auth, async (req, res) => {
 
         // Save all notifications
         if (notifications.length > 0) {
-            await Notification.insertMany(notifications);
+            // Fetch users for the notifications
+            const recipientIds = notifications.map(n => n.recipient);
+            const recipients = await User.find({ _id: { $in: recipientIds } });
+
+            // We need to map notifications to users to send emails with the correct message
+            // Since notifyUsers sends the SAME message to all, we might need to loop if messages differ.
+            // In this case, messages DO differ based on who is receiving it (requester vs assigned manager).
+
+            const { notifyUsers } = require('../utils/notificationHelper');
+
+            // Group notifications by message
+            const notificationsByMessage = {};
+            notifications.forEach(n => {
+                if (!notificationsByMessage[n.message]) {
+                    notificationsByMessage[n.message] = [];
+                }
+                notificationsByMessage[n.message].push(n.recipient);
+            });
+
+            for (const [message, recipientIds] of Object.entries(notificationsByMessage)) {
+                const users = recipients.filter(r => recipientIds.some(id => id.toString() === r._id.toString()));
+                if (users.length > 0) {
+                    await notifyUsers(
+                        users,
+                        'fund_discussion',
+                        message,
+                        {
+                            entityType: 'FundRequisition',
+                            entityId: fundRequisition._id
+                        }
+                    );
+                }
+            }
         }
 
         res.json({

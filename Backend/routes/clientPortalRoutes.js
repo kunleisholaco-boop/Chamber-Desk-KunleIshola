@@ -330,28 +330,16 @@ router.post('/:shareToken/meetings', async (req, res) => {
         const attendeeEmails = savedMeeting.attendees.map(a => a.email);
         const attendeeUsers = await User.find({ email: { $in: attendeeEmails } });
 
-        const notifications = attendeeUsers.map(user => ({
-            recipient: user._id,
-            type: 'client_meeting_created',
-            message: `New meeting scheduled: "${title}" on ${new Date(date).toLocaleDateString()} at ${time}`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            attendeeUsers,
+            'client_meeting_created',
+            `New meeting scheduled: "${title}" on ${new Date(date).toLocaleDateString()} at ${time}`,
+            {
                 entityType: 'Meeting',
                 entityId: savedMeeting._id
             }
-        }));
-
-        // Also notify the client
-        notifications.push({
-            recipient: client._id,
-            type: 'client_meeting_created',
-            message: `You scheduled a meeting: "${title}" on ${new Date(date).toLocaleDateString()} at ${time}`,
-            relatedEntity: {
-                entityType: 'Meeting',
-                entityId: savedMeeting._id
-            }
-        });
-
-        await Notification.insertMany(notifications);
+        );
 
         res.json(savedMeeting);
     } catch (err) {
@@ -406,28 +394,16 @@ router.put('/:shareToken/meetings/:id', async (req, res) => {
         const attendeeEmails = meeting.attendees.map(a => a.email);
         const attendeeUsers = await User.find({ email: { $in: attendeeEmails } });
 
-        const notifications = attendeeUsers.map(user => ({
-            recipient: user._id,
-            type: 'client_meeting_updated',
-            message: `Meeting updated: "${meeting.title}" - New date/time: ${new Date(meeting.date).toLocaleDateString()} at ${meeting.time}`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            attendeeUsers,
+            'client_meeting_updated',
+            `Meeting updated: "${meeting.title}" - New date/time: ${new Date(meeting.date).toLocaleDateString()} at ${meeting.time}`,
+            {
                 entityType: 'Meeting',
                 entityId: meeting._id
             }
-        }));
-
-        // Also notify the client
-        notifications.push({
-            recipient: client._id,
-            type: 'client_meeting_updated',
-            message: `You updated the meeting: "${meeting.title}"`,
-            relatedEntity: {
-                entityType: 'Meeting',
-                entityId: meeting._id
-            }
-        });
-
-        await Notification.insertMany(notifications);
+        );
 
         res.json(meeting);
     } catch (err) {
@@ -469,28 +445,16 @@ router.delete('/:shareToken/meetings/:id', async (req, res) => {
         const attendeeEmails = meeting.attendees.map(a => a.email);
         const attendeeUsers = await User.find({ email: { $in: attendeeEmails } });
 
-        const notifications = attendeeUsers.map(user => ({
-            recipient: user._id,
-            type: 'client_meeting_cancelled',
-            message: `Meeting cancelled: "${meeting.title}" scheduled for ${new Date(meeting.date).toLocaleDateString()}`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            attendeeUsers,
+            'client_meeting_cancelled',
+            `Meeting cancelled: "${meeting.title}" scheduled for ${new Date(meeting.date).toLocaleDateString()}`,
+            {
                 entityType: 'Meeting',
                 entityId: meeting._id
             }
-        }));
-
-        // Also notify the client
-        notifications.push({
-            recipient: client._id,
-            type: 'client_meeting_cancelled',
-            message: `You cancelled the meeting: "${meeting.title}"`,
-            relatedEntity: {
-                entityType: 'Meeting',
-                entityId: meeting._id
-            }
-        });
-
-        await Notification.insertMany(notifications);
+        );
 
         res.json({ msg: 'Meeting cancelled' });
     } catch (err) {
@@ -694,25 +658,21 @@ router.post('/:shareToken/complaints/:complaintId/reply', async (req, res) => {
         // Notify all staff (Admins, Managers, HOC) about client's reply
         try {
             const User = require('../models/User');
-            const Notification = require('../models/Notification');
+            const { notifyUsers } = require('../utils/notificationHelper');
 
             const staffUsers = await User.find({
                 role: { $in: ['Admin', 'Manager', 'HOC'] }
             });
 
-            const staffNotifications = staffUsers.map(staff => ({
-                recipient: staff._id,
-                type: 'client_complaint_reply',
-                message: `${client.name} replied to complaint: "${complaint.subject}"`,
-                relatedEntity: {
+            await notifyUsers(
+                staffUsers,
+                'client_complaint_reply',
+                `${client.name} replied to complaint: "${complaint.subject}"`,
+                {
                     entityType: 'Client',
                     entityId: client._id
                 }
-            }));
-
-            if (staffNotifications.length > 0) {
-                await Notification.insertMany(staffNotifications);
-            }
+            );
         } catch (notifErr) {
             console.error('Error notifying staff about client reply:', notifErr.message);
         }
@@ -768,17 +728,16 @@ router.post('/:shareToken/complaints', async (req, res) => {
             role: { $in: ['Admin', 'Manager', 'HOC'] }
         });
 
-        const staffNotifications = staffUsers.map(staff => ({
-            recipient: staff._id,
-            type: 'client_complaint_created',
-            message: `New complaint from ${client.name}: "${subject}"`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            staffUsers,
+            'client_complaint_created',
+            `New complaint from ${client.name}: "${subject}"`,
+            {
                 entityType: 'Client',
                 entityId: client._id
             }
-        }));
-
-        await Notification.insertMany(staffNotifications);
+        );
 
         res.json(savedComplaint);
     } catch (err) {

@@ -32,19 +32,16 @@ router.post('/', auth, async (req, res) => {
             role: { $in: ['Manager', 'HOC'] }
         });
 
-        const notifications = managersAndHOC.map(user => ({
-            recipient: user._id,
-            type: 'client_added',
-            message: `New ${clientData.clientType} client "${clientData.name}" has been added by Admin Officer`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            managersAndHOC,
+            'client_added',
+            `New ${clientData.clientType} client "${clientData.name}" has been added by Admin Officer`,
+            {
                 entityType: 'Client',
                 entityId: client._id
             }
-        }));
-
-        if (notifications.length > 0) {
-            await Notification.insertMany(notifications);
-        }
+        );
 
         // Notify admins about new client
         await notifyAdmins(

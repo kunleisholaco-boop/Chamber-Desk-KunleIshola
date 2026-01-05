@@ -178,17 +178,18 @@ router.put('/:id/share', auth, async (req, res) => {
             }).save();
 
             // 2. For the recipients
-            const notifications = newShares.map(userId => ({
-                recipient: userId,
-                message: `${sender.name} just shared a ${document.type.toUpperCase()} - ${document.name} with you`,
-                type: 'document_share',
-                relatedEntity: {
+            const recipientUsers = await User.find({ _id: { $in: newShares } });
+            const { notifyUsers } = require('../utils/notificationHelper');
+
+            await notifyUsers(
+                recipientUsers,
+                'document_share',
+                `${sender.name} just shared a ${document.type.toUpperCase()} - ${document.name} with you`,
+                {
                     entityType: 'Document',
                     entityId: document._id
                 }
-            }));
-
-            await Notification.insertMany(notifications);
+            );
         }
 
         document = await Document.findById(req.params.id)

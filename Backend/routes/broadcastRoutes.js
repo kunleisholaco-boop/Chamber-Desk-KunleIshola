@@ -61,19 +61,16 @@ router.post('/', auth, async (req, res) => {
         const Notification = require('../models/Notification');
         const allUsers = await User.find(); // All users including the sender
 
-        const notifications = allUsers.map(user => ({
-            recipient: user._id,
-            type: 'broadcast_created',
-            message: `New broadcast from ${currentUser.name}: "${title}"`,
-            relatedEntity: {
+        const { notifyUsers } = require('../utils/notificationHelper');
+        await notifyUsers(
+            allUsers,
+            'broadcast_created',
+            `New broadcast from ${currentUser.name}: "${title}"`,
+            {
                 entityType: 'Broadcast',
                 entityId: broadcast._id
             }
-        }));
-
-        if (notifications.length > 0) {
-            await Notification.insertMany(notifications);
-        }
+        );
 
         res.json(broadcast);
     } catch (err) {

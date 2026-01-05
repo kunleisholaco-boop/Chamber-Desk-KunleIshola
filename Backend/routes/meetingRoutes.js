@@ -86,37 +86,31 @@ router.post('/', auth, async (req, res) => {
             // Find staff user IDs for the attendee emails
             const attendeeUsers = await User.find({ email: { $in: attendees } });
 
-            const userNotifications = attendeeUsers.map(user => ({
-                recipient: user._id,
-                type: 'meeting_created',
-                message: `${creator.name} scheduled a new meeting: "${title}" on ${new Date(date).toLocaleDateString()}.`,
-                relatedEntity: {
+            const { notifyUsers } = require('../utils/notificationHelper');
+            await notifyUsers(
+                attendeeUsers,
+                'meeting_created',
+                `${creator.name} scheduled a new meeting: "${title}" on ${new Date(date).toLocaleDateString()}.`,
+                {
                     entityType: 'Meeting',
                     entityId: meeting._id
                 }
-            }));
-
-            if (userNotifications.length > 0) {
-                await Notification.insertMany(userNotifications);
-            }
+            );
 
             // Find client IDs for the attendee emails
             const Client = require('../models/Client');
             const attendeeClients = await Client.find({ email: { $in: attendees } });
 
-            const clientNotifications = attendeeClients.map(client => ({
-                recipient: client._id,
-                type: 'client_meeting_created',
-                message: `${creator.name} scheduled a new meeting: "${title}" on ${new Date(date).toLocaleDateString()}.`,
-                relatedEntity: {
+
+            await notifyUsers(
+                attendeeClients,
+                'client_meeting_created',
+                `${creator.name} scheduled a new meeting: "${title}" on ${new Date(date).toLocaleDateString()}.`,
+                {
                     entityType: 'Meeting',
                     entityId: meeting._id
                 }
-            }));
-
-            if (clientNotifications.length > 0) {
-                await Notification.insertMany(clientNotifications);
-            }
+            );
         }
 
         res.json(meeting);
@@ -211,18 +205,17 @@ router.put('/:id', auth, async (req, res) => {
         if (meeting.attendees && meeting.attendees.length > 0) {
             const attendeeEmails = meeting.attendees.map(a => a.email);
             const users = await User.find({ email: { $in: attendeeEmails } });
-            const notifications = users.map(u => ({
-                recipient: u._id,
-                type: 'meeting_updated',
-                message: `${user.name} updated meeting: "${meeting.title}". New date/time: ${new Date(meeting.date).toLocaleDateString()} at ${meeting.time}.`,
-                relatedEntity: {
+
+            const { notifyUsers } = require('../utils/notificationHelper');
+            await notifyUsers(
+                users,
+                'meeting_updated',
+                `${user.name} updated meeting: "${meeting.title}". New date/time: ${new Date(meeting.date).toLocaleDateString()} at ${meeting.time}.`,
+                {
                     entityType: 'Meeting',
                     entityId: meeting._id
                 }
-            }));
-            if (notifications.length > 0) {
-                await Notification.insertMany(notifications);
-            }
+            );
         }
 
         res.json(meeting);
@@ -383,34 +376,32 @@ router.delete('/:id', auth, async (req, res) => {
         if (meeting.attendees && meeting.attendees.length > 0) {
             const attendeeEmails = meeting.attendees.map(a => a.email);
             const users = await User.find({ email: { $in: attendeeEmails } });
-            const notifications = users.map(u => ({
-                recipient: u._id,
-                type: 'meeting_cancelled',
-                message: `${user.name} cancelled meeting: "${meeting.title}" scheduled for ${new Date(meeting.date).toLocaleDateString()}.`,
-                relatedEntity: {
+
+            const { notifyUsers } = require('../utils/notificationHelper');
+            await notifyUsers(
+                users,
+                'meeting_cancelled',
+                `${user.name} cancelled meeting: "${meeting.title}" scheduled for ${new Date(meeting.date).toLocaleDateString()}.`,
+                {
                     entityType: 'Meeting',
                     entityId: meeting._id
                 }
-            }));
-            if (notifications.length > 0) {
-                await Notification.insertMany(notifications);
-            }
+            );
 
             // Notify client attendees
             const Client = require('../models/Client');
             const attendeeClients = await Client.find({ email: { $in: attendeeEmails } });
-            const clientNotifications = attendeeClients.map(client => ({
-                recipient: client._id,
-                type: 'client_meeting_cancelled',
-                message: `${user.name} cancelled meeting: "${meeting.title}" scheduled for ${new Date(meeting.date).toLocaleDateString()}.`,
-                relatedEntity: {
+
+
+            await notifyUsers(
+                attendeeClients,
+                'client_meeting_cancelled',
+                `${user.name} cancelled meeting: "${meeting.title}" scheduled for ${new Date(meeting.date).toLocaleDateString()}.`,
+                {
                     entityType: 'Meeting',
                     entityId: meeting._id
                 }
-            }));
-            if (clientNotifications.length > 0) {
-                await Notification.insertMany(clientNotifications);
-            }
+            );
         }
 
         res.json({ msg: 'Meeting cancelled' });

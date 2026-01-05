@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { sendNotificationEmail } = require('../services/emailService');
 
 /**
  * Send notification to all admin users
@@ -25,6 +26,18 @@ async function notifyAdmins(type, message, relatedEntity) {
         }));
 
         await Notification.insertMany(notifications);
+
+        // Send Emails
+        admins.forEach(admin => {
+            if (admin.email) {
+                sendNotificationEmail(
+                    admin.email,
+                    `New Notification: ${type.replace(/_/g, ' ')}`,
+                    message
+                );
+            }
+        });
+
     } catch (error) {
         console.error('Error notifying admins:', error);
         // Don't throw error to prevent disrupting the main operation
@@ -53,6 +66,18 @@ async function notifySuperAdmins(type, message, relatedEntity) {
         }));
 
         await Notification.insertMany(notifications);
+
+        // Send Emails
+        superAdmins.forEach(admin => {
+            if (admin.email) {
+                sendNotificationEmail(
+                    admin.email,
+                    `New Notification: ${type.replace(/_/g, ' ')}`,
+                    message
+                );
+            }
+        });
+
     } catch (error) {
         console.error('Error notifying superadmins:', error);
     }
@@ -80,31 +105,32 @@ async function notifyCaseStakeholders(caseId, type, message) {
         }
 
         const recipients = new Set(); // Use Set to avoid duplicates
+        const recipientEmails = new Set();
+
+        // Helper to add recipient
+        const addRecipient = (user) => {
+            if (user) {
+                recipients.add(user._id.toString());
+                if (user.email) recipientEmails.add(user.email);
+            }
+        };
 
         // Add HOC if assigned
-        if (caseItem.assignedTo) {
-            recipients.add(caseItem.assignedTo._id.toString());
-        }
+        addRecipient(caseItem.assignedTo);
 
         // Add all assigned lawyers
         if (caseItem.assignedLawyers && caseItem.assignedLawyers.length > 0) {
-            caseItem.assignedLawyers.forEach(lawyer => {
-                recipients.add(lawyer._id.toString());
-            });
+            caseItem.assignedLawyers.forEach(lawyer => addRecipient(lawyer));
         }
 
         // Add all assigned paralegals
         if (caseItem.assignedParalegals && caseItem.assignedParalegals.length > 0) {
-            caseItem.assignedParalegals.forEach(paralegal => {
-                recipients.add(paralegal._id.toString());
-            });
+            caseItem.assignedParalegals.forEach(paralegal => addRecipient(paralegal));
         }
 
         // Add all admins
         const admins = await User.find({ role: { $in: ['Admin', 'Superadmin'] } });
-        admins.forEach(admin => {
-            recipients.add(admin._id.toString());
-        });
+        admins.forEach(admin => addRecipient(admin));
 
         // Create notifications for all recipients
         if (recipients.size > 0) {
@@ -119,6 +145,15 @@ async function notifyCaseStakeholders(caseId, type, message) {
             }));
 
             await Notification.insertMany(notifications);
+
+            // Send Emails
+            recipientEmails.forEach(email => {
+                sendNotificationEmail(
+                    email,
+                    `Case Update: ${caseItem.caseTitle}`,
+                    message
+                );
+            });
         }
     } catch (error) {
         console.error('Error notifying case stakeholders:', error);
@@ -126,4 +161,42 @@ async function notifyCaseStakeholders(caseId, type, message) {
     }
 }
 
-module.exports = { notifyAdmins, notifySuperAdmins, notifyCaseStakeholders };
+/**
+ * Send notification to specific users (and send emails)
+ * @param {Array} users - Array of User objects (must contain _id and email)
+ * @param {string} type - Notification type
+ * @param {string} message - Notification message
+ * @param {Object} relatedEntity - Related entity information
+ */
+async function notifyUsers(users, type, message, relatedEntity) {
+    try {
+        if (!users || users.length === 0) {
+            return;
+        }
+
+        const notifications = users.map(user => ({
+            recipient: user._id,
+            type,
+            message,
+            relatedEntity
+        }));
+
+        await Notification.insertMany(notifications);
+
+        // Send Emails
+        users.forEach(user => {
+            if (user.email) {
+                sendNotificationEmail(
+                    user.email,
+                    `New Notification: ${type.replace(/_/g, ' ')}`,
+                    message
+                );
+            }
+        });
+
+    } catch (error) {
+        console.error('Error notifying users:', error);
+    }
+}
+
+module.exports = { notifyAdmins, notifySuperAdmins, notifyCaseStakeholders, notifyUsers };
