@@ -1,5 +1,0 @@
-# Standard Koyeb Dockerfile for Compose
-FROM koyeb/docker-compose
-
-COPY . /app
-WORKDIR /app
