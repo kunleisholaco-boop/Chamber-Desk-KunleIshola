@@ -25,7 +25,7 @@ services:
       - key: SUPABASE_SERVICE_KEY
         sync: false
 
-  - type: static
+  - type: web
     name: chamberdesk-frontend
     env: static
     rootDir: Frontend
